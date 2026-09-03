@@ -1,0 +1,2843 @@
+{
+  "schemaVersion": "0.1.0",
+  "experimentId": "01-why-kv-cache",
+  "prompt": "the cat sat on the mat",
+  "promptTokens": [
+    {
+      "id": 13,
+      "text": "the",
+      "position": 0
+    },
+    {
+      "id": 4,
+      "text": "cat",
+      "position": 1
+    },
+    {
+      "id": 12,
+      "text": "sat",
+      "position": 2
+    },
+    {
+      "id": 11,
+      "text": "on",
+      "position": 3
+    },
+    {
+      "id": 13,
+      "text": "the",
+      "position": 4
+    },
+    {
+      "id": 9,
+      "text": "mat",
+      "position": 5
+    }
+  ],
+  "config": {
+    "dModel": 16,
+    "nHeads": 2,
+    "nLayers": 1,
+    "vocabSize": 15,
+    "maxNewTokens": 6,
+    "seed": 42,
+    "device": "cpu"
+  },
+  "modes": {
+    "naive": {
+      "id": "naive",
+      "title": "Without memory \u2014 rebuild every time",
+      "generatedTokens": [
+        {
+          "id": 14,
+          "text": "to",
+          "position": 6
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 7
+        },
+        {
+          "id": 9,
+          "text": "mat",
+          "position": 8
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 9
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 10
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 11
+        }
+      ],
+      "steps": [
+        {
+          "step": 0,
+          "position": 6,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            }
+          ],
+          "reused": [],
+          "recomputedOps": 6,
+          "reusedOps": 0,
+          "cacheSizeTokens": 0,
+          "cacheBytes": 0,
+          "elapsedMs": 27.1662,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 6
+          }
+        },
+        {
+          "step": 1,
+          "position": 7,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            }
+          ],
+          "reused": [],
+          "recomputedOps": 7,
+          "reusedOps": 0,
+          "cacheSizeTokens": 0,
+          "cacheBytes": 0,
+          "elapsedMs": 0.2077,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 7
+          }
+        },
+        {
+          "step": 2,
+          "position": 8,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            }
+          ],
+          "reused": [],
+          "recomputedOps": 8,
+          "reusedOps": 0,
+          "cacheSizeTokens": 0,
+          "cacheBytes": 0,
+          "elapsedMs": 0.1785,
+          "generatedToken": {
+            "id": 9,
+            "text": "mat",
+            "position": 8
+          }
+        },
+        {
+          "step": 3,
+          "position": 9,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8,
+              "kNorm": 4.58569,
+              "vNorm": 3.48204,
+              "kPreview": [
+                -1.73233,
+                1.27286,
+                -1.67801,
+                1.02781
+              ],
+              "vPreview": [
+                0.49375,
+                -1.41431,
+                -0.42333,
+                -0.58175
+              ]
+            }
+          ],
+          "reused": [],
+          "recomputedOps": 9,
+          "reusedOps": 0,
+          "cacheSizeTokens": 0,
+          "cacheBytes": 0,
+          "elapsedMs": 0.1532,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 9
+          }
+        },
+        {
+          "step": 4,
+          "position": 10,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8,
+              "kNorm": 4.58569,
+              "vNorm": 3.48204,
+              "kPreview": [
+                -1.73233,
+                1.27286,
+                -1.67801,
+                1.02781
+              ],
+              "vPreview": [
+                0.49375,
+                -1.41431,
+                -0.42333,
+                -0.58175
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9,
+              "kNorm": 2.51567,
+              "vNorm": 4.02847,
+              "kPreview": [
+                -0.60302,
+                -0.11485,
+                0.00483,
+                0.33666
+              ],
+              "vPreview": [
+                0.00758,
+                0.15348,
+                0.15305,
+                1.24436
+              ]
+            }
+          ],
+          "reused": [],
+          "recomputedOps": 10,
+          "reusedOps": 0,
+          "cacheSizeTokens": 0,
+          "cacheBytes": 0,
+          "elapsedMs": 0.1376,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 10
+          }
+        },
+        {
+          "step": 5,
+          "position": 11,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 10
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8,
+              "kNorm": 4.58569,
+              "vNorm": 3.48204,
+              "kPreview": [
+                -1.73233,
+                1.27286,
+                -1.67801,
+                1.02781
+              ],
+              "vPreview": [
+                0.49375,
+                -1.41431,
+                -0.42333,
+                -0.58175
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9,
+              "kNorm": 2.51567,
+              "vNorm": 4.02847,
+              "kPreview": [
+                -0.60302,
+                -0.11485,
+                0.00483,
+                0.33666
+              ],
+              "vPreview": [
+                0.00758,
+                0.15348,
+                0.15305,
+                1.24436
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 10,
+              "kNorm": 1.67891,
+              "vNorm": 2.67176,
+              "kPreview": [
+                0.34402,
+                0.05003,
+                -0.16656,
+                0.00196
+              ],
+              "vPreview": [
+                0.08338,
+                -0.48101,
+                0.49853,
+                1.15741
+              ]
+            }
+          ],
+          "reused": [],
+          "recomputedOps": 11,
+          "reusedOps": 0,
+          "cacheSizeTokens": 0,
+          "cacheBytes": 0,
+          "elapsedMs": 0.1553,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 11
+          }
+        }
+      ],
+      "totals": {
+        "recomputedOps": 51,
+        "reusedOps": 0,
+        "peakCacheTokens": 0,
+        "peakCacheBytes": 0,
+        "elapsedMs": 27.9985
+      }
+    },
+    "cached": {
+      "id": "cached",
+      "title": "With memory \u2014 keep what we already learned",
+      "generatedTokens": [
+        {
+          "id": 14,
+          "text": "to",
+          "position": 6
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 7
+        },
+        {
+          "id": 9,
+          "text": "mat",
+          "position": 8
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 9
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 10
+        },
+        {
+          "id": 14,
+          "text": "to",
+          "position": 11
+        }
+      ],
+      "steps": [
+        {
+          "step": 0,
+          "position": 6,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            }
+          ],
+          "reused": [],
+          "recomputedOps": 6,
+          "reusedOps": 0,
+          "cacheSizeTokens": 6,
+          "cacheBytes": 768,
+          "elapsedMs": 0.1357,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 6
+          }
+        },
+        {
+          "step": 1,
+          "position": 7,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            }
+          ],
+          "reused": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            }
+          ],
+          "recomputedOps": 1,
+          "reusedOps": 6,
+          "cacheSizeTokens": 7,
+          "cacheBytes": 896,
+          "elapsedMs": 1.146,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 7
+          }
+        },
+        {
+          "step": 2,
+          "position": 8,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            }
+          ],
+          "reused": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            }
+          ],
+          "recomputedOps": 1,
+          "reusedOps": 7,
+          "cacheSizeTokens": 8,
+          "cacheBytes": 1024,
+          "elapsedMs": 0.216,
+          "generatedToken": {
+            "id": 9,
+            "text": "mat",
+            "position": 8
+          }
+        },
+        {
+          "step": 3,
+          "position": 9,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8,
+              "kNorm": 4.58569,
+              "vNorm": 3.48204,
+              "kPreview": [
+                -1.73233,
+                1.27286,
+                -1.67801,
+                1.02781
+              ],
+              "vPreview": [
+                0.49375,
+                -1.41431,
+                -0.42333,
+                -0.58175
+              ]
+            }
+          ],
+          "reused": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            }
+          ],
+          "recomputedOps": 1,
+          "reusedOps": 8,
+          "cacheSizeTokens": 9,
+          "cacheBytes": 1152,
+          "elapsedMs": 0.1279,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 9
+          }
+        },
+        {
+          "step": 4,
+          "position": 10,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9,
+              "kNorm": 2.51567,
+              "vNorm": 4.02847,
+              "kPreview": [
+                -0.60302,
+                -0.11485,
+                0.00483,
+                0.33666
+              ],
+              "vPreview": [
+                0.00758,
+                0.15348,
+                0.15305,
+                1.24436
+              ]
+            }
+          ],
+          "reused": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8,
+              "kNorm": 4.58569,
+              "vNorm": 3.48204,
+              "kPreview": [
+                -1.73233,
+                1.27286,
+                -1.67801,
+                1.02781
+              ],
+              "vPreview": [
+                0.49375,
+                -1.41431,
+                -0.42333,
+                -0.58175
+              ]
+            }
+          ],
+          "recomputedOps": 1,
+          "reusedOps": 9,
+          "cacheSizeTokens": 10,
+          "cacheBytes": 1280,
+          "elapsedMs": 0.1264,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 10
+          }
+        },
+        {
+          "step": 5,
+          "position": 11,
+          "inputTokens": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 10
+            }
+          ],
+          "newlyComputed": [
+            {
+              "id": 14,
+              "text": "to",
+              "position": 10,
+              "kNorm": 1.67891,
+              "vNorm": 2.67176,
+              "kPreview": [
+                0.34402,
+                0.05003,
+                -0.16656,
+                0.00196
+              ],
+              "vPreview": [
+                0.08338,
+                -0.48101,
+                0.49853,
+                1.15741
+              ]
+            }
+          ],
+          "reused": [
+            {
+              "id": 13,
+              "text": "the",
+              "position": 0,
+              "kNorm": 2.29998,
+              "vNorm": 3.07145,
+              "kPreview": [
+                0.2294,
+                -0.03518,
+                0.17167,
+                -0.62637
+              ],
+              "vPreview": [
+                -1.32206,
+                -0.49135,
+                1.04998,
+                0.47568
+              ]
+            },
+            {
+              "id": 4,
+              "text": "cat",
+              "position": 1,
+              "kNorm": 2.39241,
+              "vNorm": 3.56768,
+              "kPreview": [
+                -1.14985,
+                0.35929,
+                0.04041,
+                -0.16817
+              ],
+              "vPreview": [
+                0.37023,
+                0.18522,
+                -0.89133,
+                -1.02486
+              ]
+            },
+            {
+              "id": 12,
+              "text": "sat",
+              "position": 2,
+              "kNorm": 3.69962,
+              "vNorm": 2.86607,
+              "kPreview": [
+                1.31335,
+                0.82,
+                -0.01723,
+                -0.5213
+              ],
+              "vPreview": [
+                0.03194,
+                0.24335,
+                0.0378,
+                -0.01734
+              ]
+            },
+            {
+              "id": 11,
+              "text": "on",
+              "position": 3,
+              "kNorm": 3.15183,
+              "vNorm": 2.95204,
+              "kPreview": [
+                0.57618,
+                -0.58816,
+                -0.07144,
+                -1.12781
+              ],
+              "vPreview": [
+                -0.21953,
+                0.17432,
+                1.38146,
+                1.19814
+              ]
+            },
+            {
+              "id": 13,
+              "text": "the",
+              "position": 4,
+              "kNorm": 3.08973,
+              "vNorm": 3.42539,
+              "kPreview": [
+                0.03356,
+                -1.02149,
+                -0.14357,
+                -0.04563
+              ],
+              "vPreview": [
+                -0.70883,
+                -0.9238,
+                0.03386,
+                0.00778
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 5,
+              "kNorm": 4.05469,
+              "vNorm": 3.43221,
+              "kPreview": [
+                -1.23795,
+                0.21388,
+                -1.08144,
+                0.01919
+              ],
+              "vPreview": [
+                1.02598,
+                -1.44927,
+                -0.57551,
+                -0.91013
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 6,
+              "kNorm": 2.82016,
+              "vNorm": 3.24863,
+              "kPreview": [
+                -0.54773,
+                0.55825,
+                -0.66521,
+                -0.44172
+              ],
+              "vPreview": [
+                0.89054,
+                -0.00594,
+                0.12823,
+                0.55075
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 7,
+              "kNorm": 3.88706,
+              "vNorm": 4.97217,
+              "kPreview": [
+                0.08907,
+                0.66846,
+                -1.64833,
+                -1.40058
+              ],
+              "vPreview": [
+                1.47647,
+                -1.48608,
+                0.97632,
+                1.19929
+              ]
+            },
+            {
+              "id": 9,
+              "text": "mat",
+              "position": 8,
+              "kNorm": 4.58569,
+              "vNorm": 3.48204,
+              "kPreview": [
+                -1.73233,
+                1.27286,
+                -1.67801,
+                1.02781
+              ],
+              "vPreview": [
+                0.49375,
+                -1.41431,
+                -0.42333,
+                -0.58175
+              ]
+            },
+            {
+              "id": 14,
+              "text": "to",
+              "position": 9,
+              "kNorm": 2.51567,
+              "vNorm": 4.02847,
+              "kPreview": [
+                -0.60302,
+                -0.11485,
+                0.00483,
+                0.33666
+              ],
+              "vPreview": [
+                0.00758,
+                0.15348,
+                0.15305,
+                1.24436
+              ]
+            }
+          ],
+          "recomputedOps": 1,
+          "reusedOps": 10,
+          "cacheSizeTokens": 11,
+          "cacheBytes": 1408,
+          "elapsedMs": 0.1134,
+          "generatedToken": {
+            "id": 14,
+            "text": "to",
+            "position": 11
+          }
+        }
+      ],
+      "totals": {
+        "recomputedOps": 11,
+        "reusedOps": 40,
+        "peakCacheTokens": 11,
+        "peakCacheBytes": 1408,
+        "elapsedMs": 1.8654
+      }
+    }
+  },
+  "equivalence": {
+    "outputsMatch": true,
+    "maxAbsLogitDiff": 4.470348358154297e-08,
+    "tolerance": 1e-05,
+    "generatedTokenIds": {
+      "naive": [
+        14,
+        14,
+        9,
+        14,
+        14,
+        14
+      ],
+      "cached": [
+        14,
+        14,
+        9,
+        14,
+        14,
+        14
+      ]
+    }
+  },
+  "measurementDisclaimer": "elapsedMs is an educational laptop timer on a 16-dimensional toy model. It shows that work is being repeated; it does not measure production LLM throughput, GPU memory-bandwidth limits, or serving latency."
+}

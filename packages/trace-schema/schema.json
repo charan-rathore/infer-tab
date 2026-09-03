@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infertab.dev/schema/trace-v0.1.0.json",
+  "title": "InferTabTrace",
+  "description": "Deterministic JSON produced by an InferTab experiment and consumed by the visualizer. Experiments must not depend on the UI.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "experimentId",
+    "prompt",
+    "promptTokens",
+    "config",
+    "modes",
+    "equivalence",
+    "measurementDisclaimer"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "0.1.0" },
+    "experimentId": { "type": "string", "minLength": 1 },
+    "prompt": { "type": "string" },
+    "promptTokens": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/token" }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dModel",
+        "nHeads",
+        "nLayers",
+        "vocabSize",
+        "maxNewTokens",
+        "seed",
+        "device"
+      ],
+      "properties": {
+        "dModel": { "type": "integer", "minimum": 1 },
+        "nHeads": { "type": "integer", "minimum": 1 },
+        "nLayers": { "type": "integer", "minimum": 1 },
+        "vocabSize": { "type": "integer", "minimum": 1 },
+        "maxNewTokens": { "type": "integer", "minimum": 1 },
+        "seed": { "type": "integer" },
+        "device": { "type": "string" }
+      }
+    },
+    "modes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["naive", "cached"],
+      "properties": {
+        "naive": { "$ref": "#/$defs/mode" },
+        "cached": { "$ref": "#/$defs/mode" }
+      }
+    },
+    "equivalence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outputsMatch", "maxAbsLogitDiff", "tolerance", "generatedTokenIds"],
+      "properties": {
+        "outputsMatch": { "type": "boolean" },
+        "maxAbsLogitDiff": { "type": "number" },
+        "tolerance": { "type": "number" },
+        "generatedTokenIds": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["naive", "cached"],
+          "properties": {
+            "naive": { "type": "array", "items": { "type": "integer" } },
+            "cached": { "type": "array", "items": { "type": "integer" } }
+          }
+        }
+      }
+    },
+    "measurementDisclaimer": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "token": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "position"],
+      "properties": {
+        "id": { "type": "integer" },
+        "text": { "type": "string" },
+        "position": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "kvBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "position", "kNorm", "vNorm", "kPreview", "vPreview"],
+      "properties": {
+        "id": { "type": "integer" },
+        "text": { "type": "string" },
+        "position": { "type": "integer" },
+        "kNorm": { "type": "number" },
+        "vNorm": { "type": "number" },
+        "kPreview": {
+          "type": "array",
+          "items": { "type": "number" },
+          "maxItems": 8
+        },
+        "vPreview": {
+          "type": "array",
+          "items": { "type": "number" },
+          "maxItems": 8
+        }
+      }
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "generatedTokens", "steps", "totals"],
+      "properties": {
+        "id": { "type": "string", "enum": ["naive", "cached"] },
+        "title": { "type": "string" },
+        "generatedTokens": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/token" }
+        },
+        "steps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/step" }
+        },
+        "totals": { "$ref": "#/$defs/totals" }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step",
+        "position",
+        "inputTokens",
+        "newlyComputed",
+        "reused",
+        "recomputedOps",
+        "reusedOps",
+        "cacheSizeTokens",
+        "cacheBytes",
+        "elapsedMs",
+        "generatedToken"
+      ],
+      "properties": {
+        "step": { "type": "integer", "minimum": 0 },
+        "position": { "type": "integer", "minimum": 0 },
+        "inputTokens": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/token" }
+        },
+        "newlyComputed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/kvBlock" }
+        },
+        "reused": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/kvBlock" }
+        },
+        "recomputedOps": { "type": "integer", "minimum": 0 },
+        "reusedOps": { "type": "integer", "minimum": 0 },
+        "cacheSizeTokens": { "type": "integer", "minimum": 0 },
+        "cacheBytes": { "type": "integer", "minimum": 0 },
+        "elapsedMs": { "type": "number", "minimum": 0 },
+        "generatedToken": { "$ref": "#/$defs/token" }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "recomputedOps",
+        "reusedOps",
+        "peakCacheTokens",
+        "peakCacheBytes",
+        "elapsedMs"
+      ],
+      "properties": {
+        "recomputedOps": { "type": "integer" },
+        "reusedOps": { "type": "integer" },
+        "peakCacheTokens": { "type": "integer" },
+        "peakCacheBytes": { "type": "integer" },
+        "elapsedMs": { "type": "number" }
+      }
+    }
+  }
+}
