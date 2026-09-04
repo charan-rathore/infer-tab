@@ -4,6 +4,10 @@
 .env.*.local
 *.pem
 
+# Unreleased product architecture. The public repo is the experiments
+# and visualizer. Long-term InferTab design stays on your machine.
+/private/
+
 # Python
 __pycache__/
 *.py[cod]

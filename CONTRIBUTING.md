@@ -42,3 +42,7 @@ When you introduce an inference concept, write a short comment that says **why i
 ## Phase rule
 
 Do not start the next phase in the same change as a working one. Finish the mental model first.
+
+## What stays off GitHub
+
+This repository is public. Keep unreleased product architecture in a local `private/` folder (gitignored). Do not commit roadmaps, system diagrams, or “how InferTab will be a company” docs. The experiments, traces, and visualizer are the public work.
