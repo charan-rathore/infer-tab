@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.1.0",
+  "schemaVersion": "0.2.0",
   "experimentId": "01-why-kv-cache",
   "prompt": "the cat sat on the mat",
   "promptTokens": [
@@ -232,11 +232,11 @@
             }
           ],
           "reused": [],
-          "recomputedOps": 6,
-          "reusedOps": 0,
+          "kvRowsProjected": 6,
+          "kvRowsReused": 0,
           "cacheSizeTokens": 0,
-          "cacheBytes": 0,
-          "elapsedMs": 27.1662,
+          "logicalKvBytes": 0,
+          "elapsedMs": 37.888,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -419,11 +419,11 @@
             }
           ],
           "reused": [],
-          "recomputedOps": 7,
-          "reusedOps": 0,
+          "kvRowsProjected": 7,
+          "kvRowsReused": 0,
           "cacheSizeTokens": 0,
-          "cacheBytes": 0,
-          "elapsedMs": 0.2077,
+          "logicalKvBytes": 0,
+          "elapsedMs": 0.3609,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -630,11 +630,11 @@
             }
           ],
           "reused": [],
-          "recomputedOps": 8,
-          "reusedOps": 0,
+          "kvRowsProjected": 8,
+          "kvRowsReused": 0,
           "cacheSizeTokens": 0,
-          "cacheBytes": 0,
-          "elapsedMs": 0.1785,
+          "logicalKvBytes": 0,
+          "elapsedMs": 0.4064,
           "generatedToken": {
             "id": 9,
             "text": "mat",
@@ -865,11 +865,11 @@
             }
           ],
           "reused": [],
-          "recomputedOps": 9,
-          "reusedOps": 0,
+          "kvRowsProjected": 9,
+          "kvRowsReused": 0,
           "cacheSizeTokens": 0,
-          "cacheBytes": 0,
-          "elapsedMs": 0.1532,
+          "logicalKvBytes": 0,
+          "elapsedMs": 0.4895,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -1124,11 +1124,11 @@
             }
           ],
           "reused": [],
-          "recomputedOps": 10,
-          "reusedOps": 0,
+          "kvRowsProjected": 10,
+          "kvRowsReused": 0,
           "cacheSizeTokens": 0,
-          "cacheBytes": 0,
-          "elapsedMs": 0.1376,
+          "logicalKvBytes": 0,
+          "elapsedMs": 0.1614,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -1407,11 +1407,11 @@
             }
           ],
           "reused": [],
-          "recomputedOps": 11,
-          "reusedOps": 0,
+          "kvRowsProjected": 11,
+          "kvRowsReused": 0,
           "cacheSizeTokens": 0,
-          "cacheBytes": 0,
-          "elapsedMs": 0.1553,
+          "logicalKvBytes": 0,
+          "elapsedMs": 0.2417,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -1420,11 +1420,11 @@
         }
       ],
       "totals": {
-        "recomputedOps": 51,
-        "reusedOps": 0,
+        "kvRowsProjected": 51,
+        "kvRowsReused": 0,
         "peakCacheTokens": 0,
-        "peakCacheBytes": 0,
-        "elapsedMs": 27.9985
+        "peakLogicalKvBytes": 0,
+        "elapsedMs": 39.5479
       }
     },
     "cached": {
@@ -1615,11 +1615,11 @@
             }
           ],
           "reused": [],
-          "recomputedOps": 6,
-          "reusedOps": 0,
+          "kvRowsProjected": 6,
+          "kvRowsReused": 0,
           "cacheSizeTokens": 6,
-          "cacheBytes": 768,
-          "elapsedMs": 0.1357,
+          "logicalKvBytes": 768,
+          "elapsedMs": 0.4885,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -1803,11 +1803,11 @@
               ]
             }
           ],
-          "recomputedOps": 1,
-          "reusedOps": 6,
+          "kvRowsProjected": 1,
+          "kvRowsReused": 6,
           "cacheSizeTokens": 7,
-          "cacheBytes": 896,
-          "elapsedMs": 1.146,
+          "logicalKvBytes": 896,
+          "elapsedMs": 4.0871,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -2015,11 +2015,11 @@
               ]
             }
           ],
-          "recomputedOps": 1,
-          "reusedOps": 7,
+          "kvRowsProjected": 1,
+          "kvRowsReused": 7,
           "cacheSizeTokens": 8,
-          "cacheBytes": 1024,
-          "elapsedMs": 0.216,
+          "logicalKvBytes": 1024,
+          "elapsedMs": 0.5912,
           "generatedToken": {
             "id": 9,
             "text": "mat",
@@ -2251,11 +2251,11 @@
               ]
             }
           ],
-          "recomputedOps": 1,
-          "reusedOps": 8,
+          "kvRowsProjected": 1,
+          "kvRowsReused": 8,
           "cacheSizeTokens": 9,
-          "cacheBytes": 1152,
-          "elapsedMs": 0.1279,
+          "logicalKvBytes": 1152,
+          "elapsedMs": 0.365,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -2511,11 +2511,11 @@
               ]
             }
           ],
-          "recomputedOps": 1,
-          "reusedOps": 9,
+          "kvRowsProjected": 1,
+          "kvRowsReused": 9,
           "cacheSizeTokens": 10,
-          "cacheBytes": 1280,
-          "elapsedMs": 0.1264,
+          "logicalKvBytes": 1280,
+          "elapsedMs": 0.4378,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -2795,11 +2795,11 @@
               ]
             }
           ],
-          "recomputedOps": 1,
-          "reusedOps": 10,
+          "kvRowsProjected": 1,
+          "kvRowsReused": 10,
           "cacheSizeTokens": 11,
-          "cacheBytes": 1408,
-          "elapsedMs": 0.1134,
+          "logicalKvBytes": 1408,
+          "elapsedMs": 0.204,
           "generatedToken": {
             "id": 14,
             "text": "to",
@@ -2808,11 +2808,11 @@
         }
       ],
       "totals": {
-        "recomputedOps": 11,
-        "reusedOps": 40,
+        "kvRowsProjected": 11,
+        "kvRowsReused": 40,
         "peakCacheTokens": 11,
-        "peakCacheBytes": 1408,
-        "elapsedMs": 1.8654
+        "peakLogicalKvBytes": 1408,
+        "elapsedMs": 6.1736
       }
     }
   },
@@ -2839,5 +2839,5 @@
       ]
     }
   },
-  "measurementDisclaimer": "elapsedMs is an educational laptop timer on a 16-dimensional toy model. It shows that work is being repeated; it does not measure production LLM throughput, GPU memory-bandwidth limits, or serving latency."
+  "measurementDisclaimer": "This experiment counts redundant K/V row projections, not FLOPs. Naive decoding re-projects Q, K, and V across the whole prefix at every step. Cached decoding, after prefill, projects Q/K/V only for the newest token and reuses stored K/V. logicalKvBytes is tokens \u00d7 d_model \u00d7 2 \u00d7 4 (float32 K and V payload), not process peak memory. Repeated torch.cat is intentionally simple and can copy extra buffers; later experiments will motivate better allocation. elapsedMs is an educational laptop timer on a 16-dimensional toy. It does not measure production LLM throughput, GPU memory-bandwidth, or serving latency."
 }

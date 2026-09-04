@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://infertab.dev/schema/trace-v0.1.0.json",
+  "$id": "https://infertab.dev/schema/trace-v0.2.0.json",
   "title": "InferTabTrace",
   "description": "Deterministic JSON produced by an InferTab experiment and consumed by the visualizer. Experiments must not depend on the UI.",
   "type": "object",
@@ -16,7 +16,7 @@
     "measurementDisclaimer"
   ],
   "properties": {
-    "schemaVersion": { "type": "string", "const": "0.1.0" },
+    "schemaVersion": { "type": "string", "const": "0.2.0" },
     "experimentId": { "type": "string", "minLength": 1 },
     "prompt": { "type": "string" },
     "promptTokens": {
@@ -135,10 +135,10 @@
         "inputTokens",
         "newlyComputed",
         "reused",
-        "recomputedOps",
-        "reusedOps",
+        "kvRowsProjected",
+        "kvRowsReused",
         "cacheSizeTokens",
-        "cacheBytes",
+        "logicalKvBytes",
         "elapsedMs",
         "generatedToken"
       ],
@@ -157,10 +157,10 @@
           "type": "array",
           "items": { "$ref": "#/$defs/kvBlock" }
         },
-        "recomputedOps": { "type": "integer", "minimum": 0 },
-        "reusedOps": { "type": "integer", "minimum": 0 },
+        "kvRowsProjected": { "type": "integer", "minimum": 0 },
+        "kvRowsReused": { "type": "integer", "minimum": 0 },
         "cacheSizeTokens": { "type": "integer", "minimum": 0 },
-        "cacheBytes": { "type": "integer", "minimum": 0 },
+        "logicalKvBytes": { "type": "integer", "minimum": 0 },
         "elapsedMs": { "type": "number", "minimum": 0 },
         "generatedToken": { "$ref": "#/$defs/token" }
       }
@@ -169,17 +169,17 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "recomputedOps",
-        "reusedOps",
+        "kvRowsProjected",
+        "kvRowsReused",
         "peakCacheTokens",
-        "peakCacheBytes",
+        "peakLogicalKvBytes",
         "elapsedMs"
       ],
       "properties": {
-        "recomputedOps": { "type": "integer" },
-        "reusedOps": { "type": "integer" },
+        "kvRowsProjected": { "type": "integer" },
+        "kvRowsReused": { "type": "integer" },
         "peakCacheTokens": { "type": "integer" },
-        "peakCacheBytes": { "type": "integer" },
+        "peakLogicalKvBytes": { "type": "integer" },
         "elapsedMs": { "type": "number" }
       }
     }

@@ -236,15 +236,17 @@ export function Playground({ initialTrace }: { initialTrace: InferTabTrace }) {
 
       <div className="stats">
         <div className="stat">
-          <b>{step ? step.recomputedOps : totals.recomputedOps}</b>
+          <b>{step ? step.kvRowsProjected : totals.kvRowsProjected}</b>
           <span>
-            {step ? "Blocks rebuilt this step" : "Blocks rebuilt in total"}
+            {step
+              ? "K/V rows projected this step"
+              : "K/V rows projected in total"}
           </span>
         </div>
         <div className="stat">
-          <b>{step ? step.reusedOps : totals.reusedOps}</b>
+          <b>{step ? step.kvRowsReused : totals.kvRowsReused}</b>
           <span>
-            {step ? "Blocks reused this step" : "Blocks reused in total"}
+            {step ? "K/V rows reused this step" : "K/V rows reused in total"}
           </span>
         </div>
         <div className="stat">
@@ -252,8 +254,8 @@ export function Playground({ initialTrace }: { initialTrace: InferTabTrace }) {
           <span>Tokens on the shelf</span>
         </div>
         <div className="stat">
-          <b>{step ? step.cacheBytes : totals.peakCacheBytes}</b>
-          <span>Shelf size in bytes (K and V, float32)</span>
+          <b>{step ? step.logicalKvBytes : totals.peakLogicalKvBytes}</b>
+          <span>Logical K/V payload (float32), not process memory</span>
         </div>
       </div>
 
@@ -268,10 +270,11 @@ export function Playground({ initialTrace }: { initialTrace: InferTabTrace }) {
 
       <p className="disclaimer">{trace.measurementDisclaimer}</p>
       <p className="footnote">
-        This toy has {trace.config.dModel} numbers per token,{" "}
-        {trace.config.nHeads} attention heads, and 1 layer. Real chat models
-        are thousands of times wider. The generated words are random — the
-        point is which blocks get reconstructed.
+        Counts are K/V rows, not FLOPs. Without memory the model also rebuilds
+        Q for the whole prefix; with memory, after the first step, Q is only
+        for the new token. This toy has {trace.config.dModel} numbers per
+        token, {trace.config.nHeads} attention heads, and 1 layer. The
+        generated words are random — watch which K/V rows get reconstructed.
       </p>
     </section>
   );

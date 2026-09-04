@@ -3,7 +3,7 @@
  * Python writes this shape. The web app only reads it.
  */
 
-export const TRACE_SCHEMA_VERSION = "0.1.0" as const;
+export const TRACE_SCHEMA_VERSION = "0.2.0" as const;
 
 export type ModeId = "naive" | "cached";
 
@@ -30,10 +30,13 @@ export interface TraceStep {
   inputTokens: TraceToken[];
   newlyComputed: KvBlock[];
   reused: KvBlock[];
-  recomputedOps: number;
-  reusedOps: number;
+  /** K/V rows projected this step. Not a FLOP count. */
+  kvRowsProjected: number;
+  /** Stored K/V rows read this step. Not a FLOP count. */
+  kvRowsReused: number;
   cacheSizeTokens: number;
-  cacheBytes: number;
+  /** Float32 K/V payload. Not process peak memory. */
+  logicalKvBytes: number;
   elapsedMs: number;
   generatedToken: TraceToken;
 }
@@ -44,10 +47,10 @@ export interface TraceMode {
   generatedTokens: TraceToken[];
   steps: TraceStep[];
   totals: {
-    recomputedOps: number;
-    reusedOps: number;
+    kvRowsProjected: number;
+    kvRowsReused: number;
     peakCacheTokens: number;
-    peakCacheBytes: number;
+    peakLogicalKvBytes: number;
     elapsedMs: number;
   };
 }
@@ -124,10 +127,10 @@ function isStep(value: unknown): value is TraceStep {
     value.newlyComputed.every(isKvBlock) &&
     Array.isArray(value.reused) &&
     value.reused.every(isKvBlock) &&
-    typeof value.recomputedOps === "number" &&
-    typeof value.reusedOps === "number" &&
+    typeof value.kvRowsProjected === "number" &&
+    typeof value.kvRowsReused === "number" &&
     typeof value.cacheSizeTokens === "number" &&
-    typeof value.cacheBytes === "number" &&
+    typeof value.logicalKvBytes === "number" &&
     typeof value.elapsedMs === "number" &&
     isToken(value.generatedToken)
   );
@@ -143,8 +146,8 @@ function isMode(value: unknown): value is TraceMode {
     value.generatedTokens.every(isToken) &&
     Array.isArray(value.steps) &&
     value.steps.every(isStep) &&
-    typeof value.totals.recomputedOps === "number" &&
-    typeof value.totals.reusedOps === "number"
+    typeof value.totals.kvRowsProjected === "number" &&
+    typeof value.totals.kvRowsReused === "number"
   );
 }
 

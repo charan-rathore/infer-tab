@@ -1,9 +1,12 @@
 """Naive vs cached autoregressive decode, both emitting the same trace shape.
 
-Naive path: at every new token, project K and V for the entire prefix again.
-Cached path: project K and V only for the new token; concatenate onto a list.
+Naive path: at every new token, re-project Q, K, and V for the entire prefix.
+Cached path: after prefill, project Q/K/V only for the newest token and
+concatenate stored K/V with torch.cat (intentionally simple, not a real allocator).
 
-The two paths must produce the same tokens. If they do not, the cache is wrong.
+The educational count is redundant K/V *rows*, not FLOPs.
+The two paths must match on generated ids and raw logits. If they do not,
+the cache is wrong.
 """
 
 from __future__ import annotations
@@ -16,14 +19,19 @@ import torch
 from tiny_lm import TinyCausalLM, build_vocab, encode, seed_model, tokenize
 
 EXPERIMENT_ID = "01-why-kv-cache"
-SCHEMA_VERSION = "0.1.0"
+SCHEMA_VERSION = "0.2.0"
 TOLERANCE = 1e-5
 BYTES_PER_FLOAT = 4  # float32
 
 MEASUREMENT_DISCLAIMER = (
-    "elapsedMs is an educational laptop timer on a 16-dimensional toy model. "
-    "It shows that work is being repeated; it does not measure production LLM "
-    "throughput, GPU memory-bandwidth limits, or serving latency."
+    "This experiment counts redundant K/V row projections, not FLOPs. "
+    "Naive decoding re-projects Q, K, and V across the whole prefix at every step. "
+    "Cached decoding, after prefill, projects Q/K/V only for the newest token and "
+    "reuses stored K/V. logicalKvBytes is tokens × d_model × 2 × 4 (float32 K and V "
+    "payload), not process peak memory. Repeated torch.cat is intentionally simple "
+    "and can copy extra buffers; later experiments will motivate better allocation. "
+    "elapsedMs is an educational laptop timer on a 16-dimensional toy. It does not "
+    "measure production LLM throughput, GPU memory-bandwidth, or serving latency."
 )
 
 
@@ -47,8 +55,12 @@ def _token(token_id: int, text: str, position: int) -> Dict[str, Any]:
     return {"id": int(token_id), "text": text, "position": int(position)}
 
 
-def cache_bytes(n_tokens: int, d_model: int) -> int:
-    """K and V for each cached token, float32. A readable proxy for 'shelf size'."""
+def logical_kv_bytes(n_tokens: int, d_model: int) -> int:
+    """Logical float32 K/V payload: tokens × d_model × 2 × 4.
+
+    This is not RSS or allocator peak. torch.cat below may copy the growing
+    cache on every step; we leave that waste visible on purpose.
+    """
     return n_tokens * d_model * 2 * BYTES_PER_FLOAT
 
 
@@ -72,10 +84,12 @@ def generate_naive(
     itos: List[str],
     max_new_tokens: int,
 ) -> Tuple[Dict[str, Any], List[int], List[torch.Tensor]]:
-    """Recompute K/V for every prefix token at every step.
+    """Re-project Q, K, and V for every prefix token at every step.
 
-    WHY this is wasteful: the prompt tokens do not change while we generate.
-    W_k(embed(token_i)) is the same number every time we call it.
+    WHY this is wasteful: a causal Transformer will not let a future token
+    change a past hidden state, so those past K/V rows are identical if we
+    recompute them. We still rebuild Q for the whole prefix here, but the
+    number we record is only how many K/V rows were projected — not FLOPs.
     """
     ids = list(prompt_ids)
     steps: List[Dict[str, Any]] = []
@@ -107,10 +121,10 @@ def generate_naive(
                 "inputTokens": [_token(ids[i], itos[ids[i]], i) for i in range(t)],
                 "newlyComputed": newly,
                 "reused": [],
-                "recomputedOps": t,
-                "reusedOps": 0,
+                "kvRowsProjected": t,
+                "kvRowsReused": 0,
                 "cacheSizeTokens": 0,
-                "cacheBytes": 0,
+                "logicalKvBytes": 0,
                 "elapsedMs": round(elapsed, 4),
                 "generatedToken": _token(next_id, itos[next_id], t),
             }
@@ -126,11 +140,12 @@ def generate_cached(
     itos: List[str],
     max_new_tokens: int,
 ) -> Tuple[Dict[str, Any], List[int], List[torch.Tensor]]:
-    """Store past K/V. Only the newest token is projected.
+    """Store past K/V. After prefill, only the newest token is projected.
 
-    WHY this is correct: K_i = W_k(x_i) and V_i = W_v(x_i) are functions of
-    token i alone. Later tokens change Q (what we ask) but not past K/V
-    (what those past tokens contain and contribute).
+    WHY this is correct: a past token's K/V may depend on its token, its
+    position, and all causally preceding context at this layer. Future
+    tokens change the new Q (what we ask now) but cannot alter an
+    already-computed past hidden state, so those K/V rows stay valid.
     """
     ids = list(prompt_ids)
     steps: List[Dict[str, Any]] = []
@@ -157,6 +172,8 @@ def generate_cached(
             hidden = model.embed(new_id, start_pos=start_pos)
             q, k_new, v_new = model.project_qkv(hidden)
             reused_k = k_cache
+            # Intentionally naive growth: each cat may copy the whole cache.
+            # We do not preallocate. That waste is the next lesson, not this one.
             k_cache = torch.cat([k_cache, k_new], dim=0)
             v_cache = torch.cat([v_cache, v_new], dim=0)
 
@@ -188,10 +205,10 @@ def generate_cached(
                 "inputTokens": [_token(ids[i], itos[ids[i]], i) for i in range(t)],
                 "newlyComputed": newly,
                 "reused": reused,
-                "recomputedOps": len(newly),
-                "reusedOps": len(reused),
+                "kvRowsProjected": len(newly),
+                "kvRowsReused": len(reused),
                 "cacheSizeTokens": t,
-                "cacheBytes": cache_bytes(t, model.d_model),
+                "logicalKvBytes": logical_kv_bytes(t, model.d_model),
                 "elapsedMs": round(elapsed, 4),
                 "generatedToken": _token(next_id, itos[next_id], t),
             }
@@ -217,10 +234,10 @@ def _mode(
         "generatedTokens": gen_tokens,
         "steps": steps,
         "totals": {
-            "recomputedOps": sum(s["recomputedOps"] for s in steps),
-            "reusedOps": sum(s["reusedOps"] for s in steps),
+            "kvRowsProjected": sum(s["kvRowsProjected"] for s in steps),
+            "kvRowsReused": sum(s["kvRowsReused"] for s in steps),
             "peakCacheTokens": max(s["cacheSizeTokens"] for s in steps),
-            "peakCacheBytes": max(s["cacheBytes"] for s in steps),
+            "peakLogicalKvBytes": max(s["logicalKvBytes"] for s in steps),
             "elapsedMs": round(sum(s["elapsedMs"] for s in steps), 4),
         },
     }

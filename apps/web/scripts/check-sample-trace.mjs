@@ -22,7 +22,7 @@ if (missing.length) {
   console.error("missing keys:", missing.join(", "));
   process.exit(1);
 }
-if (trace.schemaVersion !== "0.1.0") {
+if (trace.schemaVersion !== "0.2.0") {
   console.error("unexpected schemaVersion", trace.schemaVersion);
   process.exit(1);
 }
@@ -37,5 +37,5 @@ if (trace.equivalence.outputsMatch !== true) {
 
 console.log("sample trace ok:", samplePath);
 console.log("prompt:", trace.prompt);
-console.log("naive recomputed:", trace.modes.naive.totals.recomputedOps);
-console.log("cached recomputed:", trace.modes.cached.totals.recomputedOps);
+console.log("naive K/V rows projected:", trace.modes.naive.totals.kvRowsProjected);
+console.log("cached K/V rows projected:", trace.modes.cached.totals.kvRowsProjected);

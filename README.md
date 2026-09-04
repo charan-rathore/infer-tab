@@ -55,7 +55,7 @@ Typing a custom sentence calls a local Python process (no cloud). If Python is u
 
 ## Educational measurements vs production inference
 
-This repo records wall-clock time and operation counts on a **16-dimensional toy model**. That is enough to see *which work is repeated*. It is **not** a claim about production LLM speed.
+This repo records wall-clock time and **K/V row counts** (not FLOPs) on a **16-dimensional toy model**. That is enough to see *which K/V work is repeated*. It is **not** a claim about production LLM speed.
 
 Production KV caches matter because real models have thousands of dimensions, thousands of tokens, and are limited by GPU memory bandwidth — not because a laptop timer said so. See [docs/inference/educational-measurements.md](docs/inference/educational-measurements.md).
 

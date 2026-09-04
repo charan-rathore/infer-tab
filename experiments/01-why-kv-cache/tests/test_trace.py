@@ -25,7 +25,7 @@ def test_committed_sample_is_valid():
 
 def test_sample_matches_schema_contract():
     data = json.loads(SAMPLE.read_text(encoding="utf-8"))
-    assert data["schemaVersion"] == "0.1.0"
+    assert data["schemaVersion"] == "0.2.0"
     assert data["experimentId"] == "01-why-kv-cache"
     assert data["modes"]["naive"]["steps"]
     assert data["modes"]["cached"]["steps"]

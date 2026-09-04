@@ -65,8 +65,12 @@ class TinyCausalLM(nn.Module):
 
         # WHY three projections: Q asks "what am I looking for?",
         # K answers "what do I contain?", V is "what do I contribute?".
-        # Caching is legal because K and V depend only on the token that
-        # produced them — not on later tokens.
+        # A past position's K/V may depend on its token, its position, and
+        # all causally preceding context at this layer. In this one-layer
+        # toy that context is token + position embeddings. Caching is legal
+        # because a later token cannot rewrite an already-computed past
+        # hidden state in a causal Transformer — including after we add
+        # more layers later.
         self.W_q = nn.Linear(d_model, d_model, bias=False)
         self.W_k = nn.Linear(d_model, d_model, bias=False)
         self.W_v = nn.Linear(d_model, d_model, bias=False)

@@ -11,8 +11,8 @@ def validate_trace(trace: Any) -> List[str]:
     if not isinstance(trace, dict):
         return ["trace must be an object"]
 
-    if trace.get("schemaVersion") != "0.1.0":
-        errors.append("schemaVersion must be 0.1.0")
+    if trace.get("schemaVersion") != "0.2.0":
+        errors.append("schemaVersion must be 0.2.0")
     for key in ("experimentId", "prompt", "measurementDisclaimer"):
         if not isinstance(trace.get(key), str) or not trace[key]:
             errors.append(f"{key} must be a non-empty string")
@@ -82,7 +82,7 @@ def _validate_mode(mode: Any, name: str) -> List[str]:
             checker = _is_block if key != "inputTokens" else _is_token
             if not isinstance(items, list) or not all(checker(x) for x in items):
                 errors.append(f"{prefix}.{key} is invalid")
-        for key in ("recomputedOps", "reusedOps", "cacheSizeTokens", "cacheBytes"):
+        for key in ("kvRowsProjected", "kvRowsReused", "cacheSizeTokens", "logicalKvBytes"):
             if not isinstance(step.get(key), int):
                 errors.append(f"{prefix}.{key} must be an integer")
         if not _is_token(step.get("generatedToken")):

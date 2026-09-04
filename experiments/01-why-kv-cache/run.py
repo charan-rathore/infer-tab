@@ -44,9 +44,9 @@ def main() -> None:
     print(f"tokens generated: {trace['equivalence']['generatedTokenIds']['naive']}")
     print(f"outputs match:    {trace['equivalence']['outputsMatch']}")
     print(f"max logit diff:   {trace['equivalence']['maxAbsLogitDiff']:.2e}")
-    print(f"naive recomputed: {naive['recomputedOps']}   reused: {naive['reusedOps']}")
-    print(f"cached recomputed:{cached['recomputedOps']}   reused: {cached['reusedOps']}")
-    print(f"peak cache bytes: {cached['peakCacheBytes']}  (educational, not production)")
+    print(f"naive K/V rows projected: {naive['kvRowsProjected']}   reused: {naive['kvRowsReused']}")
+    print(f"cached K/V rows projected:{cached['kvRowsProjected']}   reused: {cached['kvRowsReused']}")
+    print(f"peak logical K/V bytes: {cached['peakLogicalKvBytes']}  (payload, not RSS)")
     print(trace["measurementDisclaimer"])
 
 
