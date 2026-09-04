@@ -6,13 +6,15 @@ InferTab is not a chat UI, not a metrics dashboard, and not a wrapper around vLL
 
 **build a mechanism → let it fail → measure the bottleneck → visualize the reason → add the optimization → compare.**
 
-Phase 0 answers one question: **why does a KV cache exist?**
+Phase 0 answers: **why does a KV cache exist?**  
+Phase 1 answers: **why are prefill and decode different jobs?**
 
 ## What you can do today
 
 1. Run a tiny autoregressive attention experiment in Python (no GPU, no downloads).
 2. Compare **naive decoding** (recompute every past key/value) with **cached decoding** (store and reuse them).
-3. Open a playful web view that replays the recorded trace.
+3. Then split one generation into **prefill** (read the prompt together) and **decode** (one new query, long shelf).
+4. Open a playful web view that replays the recorded trace.
 
 ```
 experiment  →  trace.json  →  visualization
@@ -38,7 +40,7 @@ npm install
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000). Type a short sentence, step through tokens, and toggle memory on/off.
+Then open [http://localhost:3000](http://localhost:3000) for the cache experiment and [http://localhost:3000/prefill-vs-decode](http://localhost:3000/prefill-vs-decode) for prefill vs decode.
 
 Typing a custom sentence calls a local Python process (no cloud). If Python is unavailable, the UI falls back to the committed sample trace.
 
@@ -46,7 +48,8 @@ Typing a custom sentence calls a local Python process (no cloud). If Python is u
 
 | Path | Role |
 | --- | --- |
-| `experiments/01-why-kv-cache/` | Tiny from-scratch attention. Produces `trace.json`. |
+| `experiments/01-why-kv-cache/` | Why a KV cache exists. |
+| `experiments/02-prefill-vs-decode/` | Why prefill and decode have different shapes. |
 | `packages/trace-schema/` | Shared JSON shape for every future experiment. |
 | `apps/web/` | Next.js visualizer. Consumes traces only. |
 | `docs/git/` | How Git actually moves state (working tree → index → objects → remote). |

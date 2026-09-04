@@ -1,4 +1,5 @@
 import sample from "../public/traces/sample-why-kv-cache.json";
+import { ExperimentNav } from "@/components/ExperimentNav";
 import { Playground } from "@/components/Playground";
 import { assertValidTrace } from "@/lib/schema";
 
@@ -7,6 +8,7 @@ const initialTrace = assertValidTrace(sample);
 export default function HomePage() {
   return (
     <main className="page">
+      <ExperimentNav current="kv" />
       <p className="eyebrow">InferTab · Phase 0</p>
       <h1>Watch a model think. Then watch it remember.</h1>
       <p className="lede">

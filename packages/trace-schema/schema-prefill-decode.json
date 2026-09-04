@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infertab.dev/schema/trace-prefill-decode-v0.3.0.json",
+  "title": "InferTabPrefillDecodeTrace",
+  "description": "Phase 1 experiment: prefill vs one decode step. Independent of the UI.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "experimentId",
+    "prompt",
+    "promptTokens",
+    "config",
+    "prefill",
+    "decode",
+    "scaling",
+    "equivalence",
+    "measurementDisclaimer"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "0.3.0" },
+    "experimentId": { "type": "string", "const": "02-prefill-vs-decode" },
+    "prompt": { "type": "string" },
+    "promptTokens": { "type": "array" },
+    "config": { "type": "object" },
+    "prefill": { "type": "object" },
+    "decode": { "type": "object" },
+    "scaling": { "type": "array", "minItems": 1 },
+    "equivalence": { "type": "object" },
+    "measurementDisclaimer": { "type": "string", "minLength": 1 }
+  }
+}

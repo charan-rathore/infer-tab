@@ -196,3 +196,107 @@ export function assertValidTrace(value: unknown): InferTabTrace {
   }
   return value as InferTabTrace;
 }
+
+export const PREFILL_DECODE_SCHEMA_VERSION = "0.3.0" as const;
+
+export interface TensorShapeMap {
+  [name: string]: [number, number] | number[];
+}
+
+export interface PrefillDecodeStage {
+  label?: string;
+  technicalName?: string;
+  inputTokenCount: number;
+  qRowsProjected: number;
+  kRowsProjected: number;
+  vRowsProjected: number;
+  attentionScoreShapePerHead: number[];
+  attentionScoreElementsPerHead: number;
+  attentionScoreElementsTotal: number;
+  shapes: TensorShapeMap;
+  logicalKvBytesWritten: number;
+  logicalKvBytesAvailable: number;
+  elapsedMs: number;
+  generatedToken?: TraceToken;
+  tokens?: TraceToken[];
+  newTokenPosition?: number;
+  scoreTensorShape?: number[];
+}
+
+export interface PrefillDecodeScalingRow {
+  promptLength: number;
+  prefill: PrefillDecodeStage;
+  decode: PrefillDecodeStage;
+}
+
+export interface PrefillDecodeTrace {
+  schemaVersion: typeof PREFILL_DECODE_SCHEMA_VERSION;
+  experimentId: "02-prefill-vs-decode";
+  prompt: string;
+  promptTokens: TraceToken[];
+  config: {
+    dModel: number;
+    nHeads: number;
+    nLayers: number;
+    vocabSize: number;
+    seed: number;
+    device: string;
+    maxPos: number;
+    promptLength: number;
+    decodeSteps: number;
+  };
+  prefill: PrefillDecodeStage;
+  decode: PrefillDecodeStage;
+  scaling: PrefillDecodeScalingRow[];
+  equivalence: {
+    cachedMatchesFullRecompute: boolean;
+    maxAbsLogitDiff: number;
+    tolerance: number;
+  };
+  measurementDisclaimer: string;
+}
+
+function isStage(value: unknown): value is PrefillDecodeStage {
+  if (!isObject(value) || !isObject(value.shapes)) return false;
+  return (
+    typeof value.qRowsProjected === "number" &&
+    typeof value.kRowsProjected === "number" &&
+    typeof value.vRowsProjected === "number" &&
+    typeof value.attentionScoreElementsPerHead === "number" &&
+    typeof value.logicalKvBytesWritten === "number" &&
+    typeof value.logicalKvBytesAvailable === "number" &&
+    Array.isArray(value.attentionScoreShapePerHead)
+  );
+}
+
+export function validatePrefillDecodeTrace(value: unknown): TraceValidationError[] {
+  const errors: TraceValidationError[] = [];
+  if (!isObject(value)) {
+    return [{ path: "", message: "trace must be an object" }];
+  }
+  if (value.schemaVersion !== PREFILL_DECODE_SCHEMA_VERSION) {
+    errors.push({ path: "schemaVersion", message: `expected ${PREFILL_DECODE_SCHEMA_VERSION}` });
+  }
+  if (value.experimentId !== "02-prefill-vs-decode") {
+    errors.push({ path: "experimentId", message: "expected 02-prefill-vs-decode" });
+  }
+  if (!isStage(value.prefill)) errors.push({ path: "prefill", message: "invalid stage" });
+  if (!isStage(value.decode)) errors.push({ path: "decode", message: "invalid stage" });
+  if (!Array.isArray(value.scaling) || value.scaling.length < 1) {
+    errors.push({ path: "scaling", message: "required non-empty list" });
+  }
+  if (!isObject(value.equivalence) || typeof value.equivalence.cachedMatchesFullRecompute !== "boolean") {
+    errors.push({ path: "equivalence", message: "invalid equivalence block" });
+  }
+  return errors;
+}
+
+export function assertValidPrefillDecodeTrace(value: unknown): PrefillDecodeTrace {
+  const errors = validatePrefillDecodeTrace(value);
+  if (errors.length > 0) {
+    throw new Error(
+      `Invalid prefill/decode trace: ${errors.map((e) => `${e.path}: ${e.message}`).join("; ")}`,
+    );
+  }
+  return value as PrefillDecodeTrace;
+}

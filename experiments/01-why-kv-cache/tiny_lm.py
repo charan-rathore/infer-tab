@@ -118,6 +118,27 @@ class TinyCausalLM(nn.Module):
         mixed = ctx.transpose(0, 1).contiguous().view(t_q, h * d_head)
         return self.W_o(mixed)
 
+    def attention_scores(
+        self,
+        q: torch.Tensor,
+        k: torch.Tensor,
+        q_positions: torch.Tensor,
+        k_positions: torch.Tensor,
+    ) -> torch.Tensor:
+        """Causal attention scores, shape [H, Tq, Tk].
+
+        WHY we expose this: prefill is many queries vs many keys ([P, P] per
+        head). Decode is one new query vs the whole history ([1, T] per head).
+        The shapes are the lesson; we do not treat them as FLOP/s.
+        """
+        h, d_head = self.n_heads, self.d_head
+        t_q, t_k = q.shape[0], k.shape[0]
+        qh = q.view(t_q, h, d_head).transpose(0, 1)
+        kh = k.view(t_k, h, d_head).transpose(0, 1)
+        scores = torch.matmul(qh, kh.transpose(-2, -1)) / math.sqrt(d_head)
+        future = k_positions.unsqueeze(0) > q_positions.unsqueeze(1)
+        return scores.masked_fill(future, float("-inf"))
+
     def logits_from_hidden(self, hidden_last: torch.Tensor) -> torch.Tensor:
         return self.lm_head(hidden_last)
 

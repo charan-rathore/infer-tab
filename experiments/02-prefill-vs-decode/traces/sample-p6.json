@@ -1,0 +1,596 @@
+{
+  "schemaVersion": "0.3.0",
+  "experimentId": "02-prefill-vs-decode",
+  "prompt": "the cat sat on the mat",
+  "promptTokens": [
+    {
+      "id": 13,
+      "text": "the",
+      "position": 0
+    },
+    {
+      "id": 4,
+      "text": "cat",
+      "position": 1
+    },
+    {
+      "id": 12,
+      "text": "sat",
+      "position": 2
+    },
+    {
+      "id": 11,
+      "text": "on",
+      "position": 3
+    },
+    {
+      "id": 13,
+      "text": "the",
+      "position": 4
+    },
+    {
+      "id": 9,
+      "text": "mat",
+      "position": 5
+    }
+  ],
+  "config": {
+    "dModel": 16,
+    "nHeads": 2,
+    "nLayers": 1,
+    "vocabSize": 15,
+    "seed": 42,
+    "device": "cpu",
+    "maxPos": 256,
+    "promptLength": 6,
+    "decodeSteps": 1
+  },
+  "prefill": {
+    "label": "Read what already exists.",
+    "technicalName": "Prefill",
+    "inputTokenCount": 6,
+    "qRowsProjected": 6,
+    "kRowsProjected": 6,
+    "vRowsProjected": 6,
+    "attentionScoreShapePerHead": [
+      6,
+      6
+    ],
+    "attentionScoreElementsPerHead": 36,
+    "attentionScoreElementsTotal": 72,
+    "shapes": {
+      "X": [
+        6,
+        16
+      ],
+      "Q": [
+        6,
+        16
+      ],
+      "K": [
+        6,
+        16
+      ],
+      "V": [
+        6,
+        16
+      ],
+      "scoresPerHead": [
+        6,
+        6
+      ]
+    },
+    "logicalKvBytesWritten": 768,
+    "logicalKvBytesAvailable": 768,
+    "elapsedMs": 27.2731,
+    "generatedToken": {
+      "id": 5,
+      "text": "for",
+      "position": 6
+    },
+    "tokens": [
+      {
+        "id": 13,
+        "text": "the",
+        "position": 0
+      },
+      {
+        "id": 4,
+        "text": "cat",
+        "position": 1
+      },
+      {
+        "id": 12,
+        "text": "sat",
+        "position": 2
+      },
+      {
+        "id": 11,
+        "text": "on",
+        "position": 3
+      },
+      {
+        "id": 13,
+        "text": "the",
+        "position": 4
+      },
+      {
+        "id": 9,
+        "text": "mat",
+        "position": 5
+      }
+    ],
+    "scoreTensorShape": [
+      2,
+      6,
+      6
+    ]
+  },
+  "decode": {
+    "label": "Write one new piece.",
+    "technicalName": "Decode",
+    "inputTokenCount": 1,
+    "newTokenPosition": 6,
+    "qRowsProjected": 1,
+    "kRowsProjected": 1,
+    "vRowsProjected": 1,
+    "attentionScoreShapePerHead": [
+      1,
+      7
+    ],
+    "attentionScoreElementsPerHead": 7,
+    "attentionScoreElementsTotal": 14,
+    "shapes": {
+      "Q_new": [
+        1,
+        16
+      ],
+      "K_new": [
+        1,
+        16
+      ],
+      "V_new": [
+        1,
+        16
+      ],
+      "K_cache": [
+        7,
+        16
+      ],
+      "V_cache": [
+        7,
+        16
+      ],
+      "scoresPerHead": [
+        1,
+        7
+      ]
+    },
+    "logicalKvBytesWritten": 128,
+    "logicalKvBytesAvailable": 896,
+    "elapsedMs": 1.03,
+    "generatedToken": {
+      "id": 12,
+      "text": "sat",
+      "position": 7
+    },
+    "scoreTensorShape": [
+      2,
+      1,
+      7
+    ]
+  },
+  "equivalence": {
+    "cachedMatchesFullRecompute": true,
+    "maxAbsLogitDiff": 0.0,
+    "tolerance": 1e-05
+  },
+  "measurementDisclaimer": "This experiment compares tensor *shapes* and K/V row counts for prefill versus one decode step. Attention-score element counts show a P\u00d7P grid versus a 1\u00d7T row. logicalKvBytes is tokens \u00d7 d_model \u00d7 2 \u00d7 4 (float32 payload), not process RSS. elapsedMs is an educational laptop timer on a 16-dimensional toy. None of this proves that prefill is compute-bound or that decode is memory-bandwidth-bound on a GPU.",
+  "scaling": [
+    {
+      "promptLength": 6,
+      "prefill": {
+        "inputTokenCount": 6,
+        "qRowsProjected": 6,
+        "kRowsProjected": 6,
+        "vRowsProjected": 6,
+        "attentionScoreShapePerHead": [
+          6,
+          6
+        ],
+        "attentionScoreElementsPerHead": 36,
+        "attentionScoreElementsTotal": 72,
+        "shapes": {
+          "X": [
+            6,
+            16
+          ],
+          "Q": [
+            6,
+            16
+          ],
+          "K": [
+            6,
+            16
+          ],
+          "V": [
+            6,
+            16
+          ],
+          "scoresPerHead": [
+            6,
+            6
+          ]
+        },
+        "logicalKvBytesWritten": 768,
+        "logicalKvBytesAvailable": 768,
+        "elapsedMs": 0.1748
+      },
+      "decode": {
+        "inputTokenCount": 1,
+        "qRowsProjected": 1,
+        "kRowsProjected": 1,
+        "vRowsProjected": 1,
+        "attentionScoreShapePerHead": [
+          1,
+          7
+        ],
+        "attentionScoreElementsPerHead": 7,
+        "attentionScoreElementsTotal": 14,
+        "shapes": {
+          "Q_new": [
+            1,
+            16
+          ],
+          "K_new": [
+            1,
+            16
+          ],
+          "V_new": [
+            1,
+            16
+          ],
+          "K_cache": [
+            7,
+            16
+          ],
+          "V_cache": [
+            7,
+            16
+          ],
+          "scoresPerHead": [
+            1,
+            7
+          ]
+        },
+        "logicalKvBytesWritten": 128,
+        "logicalKvBytesAvailable": 896,
+        "elapsedMs": 0.2233
+      }
+    },
+    {
+      "promptLength": 16,
+      "prefill": {
+        "inputTokenCount": 16,
+        "qRowsProjected": 16,
+        "kRowsProjected": 16,
+        "vRowsProjected": 16,
+        "attentionScoreShapePerHead": [
+          16,
+          16
+        ],
+        "attentionScoreElementsPerHead": 256,
+        "attentionScoreElementsTotal": 512,
+        "shapes": {
+          "X": [
+            16,
+            16
+          ],
+          "Q": [
+            16,
+            16
+          ],
+          "K": [
+            16,
+            16
+          ],
+          "V": [
+            16,
+            16
+          ],
+          "scoresPerHead": [
+            16,
+            16
+          ]
+        },
+        "logicalKvBytesWritten": 2048,
+        "logicalKvBytesAvailable": 2048,
+        "elapsedMs": 0.2242
+      },
+      "decode": {
+        "inputTokenCount": 1,
+        "qRowsProjected": 1,
+        "kRowsProjected": 1,
+        "vRowsProjected": 1,
+        "attentionScoreShapePerHead": [
+          1,
+          17
+        ],
+        "attentionScoreElementsPerHead": 17,
+        "attentionScoreElementsTotal": 34,
+        "shapes": {
+          "Q_new": [
+            1,
+            16
+          ],
+          "K_new": [
+            1,
+            16
+          ],
+          "V_new": [
+            1,
+            16
+          ],
+          "K_cache": [
+            17,
+            16
+          ],
+          "V_cache": [
+            17,
+            16
+          ],
+          "scoresPerHead": [
+            1,
+            17
+          ]
+        },
+        "logicalKvBytesWritten": 128,
+        "logicalKvBytesAvailable": 2176,
+        "elapsedMs": 0.1786
+      }
+    },
+    {
+      "promptLength": 32,
+      "prefill": {
+        "inputTokenCount": 32,
+        "qRowsProjected": 32,
+        "kRowsProjected": 32,
+        "vRowsProjected": 32,
+        "attentionScoreShapePerHead": [
+          32,
+          32
+        ],
+        "attentionScoreElementsPerHead": 1024,
+        "attentionScoreElementsTotal": 2048,
+        "shapes": {
+          "X": [
+            32,
+            16
+          ],
+          "Q": [
+            32,
+            16
+          ],
+          "K": [
+            32,
+            16
+          ],
+          "V": [
+            32,
+            16
+          ],
+          "scoresPerHead": [
+            32,
+            32
+          ]
+        },
+        "logicalKvBytesWritten": 4096,
+        "logicalKvBytesAvailable": 4096,
+        "elapsedMs": 0.2182
+      },
+      "decode": {
+        "inputTokenCount": 1,
+        "qRowsProjected": 1,
+        "kRowsProjected": 1,
+        "vRowsProjected": 1,
+        "attentionScoreShapePerHead": [
+          1,
+          33
+        ],
+        "attentionScoreElementsPerHead": 33,
+        "attentionScoreElementsTotal": 66,
+        "shapes": {
+          "Q_new": [
+            1,
+            16
+          ],
+          "K_new": [
+            1,
+            16
+          ],
+          "V_new": [
+            1,
+            16
+          ],
+          "K_cache": [
+            33,
+            16
+          ],
+          "V_cache": [
+            33,
+            16
+          ],
+          "scoresPerHead": [
+            1,
+            33
+          ]
+        },
+        "logicalKvBytesWritten": 128,
+        "logicalKvBytesAvailable": 4224,
+        "elapsedMs": 0.1679
+      }
+    },
+    {
+      "promptLength": 64,
+      "prefill": {
+        "inputTokenCount": 64,
+        "qRowsProjected": 64,
+        "kRowsProjected": 64,
+        "vRowsProjected": 64,
+        "attentionScoreShapePerHead": [
+          64,
+          64
+        ],
+        "attentionScoreElementsPerHead": 4096,
+        "attentionScoreElementsTotal": 8192,
+        "shapes": {
+          "X": [
+            64,
+            16
+          ],
+          "Q": [
+            64,
+            16
+          ],
+          "K": [
+            64,
+            16
+          ],
+          "V": [
+            64,
+            16
+          ],
+          "scoresPerHead": [
+            64,
+            64
+          ]
+        },
+        "logicalKvBytesWritten": 8192,
+        "logicalKvBytesAvailable": 8192,
+        "elapsedMs": 0.2711
+      },
+      "decode": {
+        "inputTokenCount": 1,
+        "qRowsProjected": 1,
+        "kRowsProjected": 1,
+        "vRowsProjected": 1,
+        "attentionScoreShapePerHead": [
+          1,
+          65
+        ],
+        "attentionScoreElementsPerHead": 65,
+        "attentionScoreElementsTotal": 130,
+        "shapes": {
+          "Q_new": [
+            1,
+            16
+          ],
+          "K_new": [
+            1,
+            16
+          ],
+          "V_new": [
+            1,
+            16
+          ],
+          "K_cache": [
+            65,
+            16
+          ],
+          "V_cache": [
+            65,
+            16
+          ],
+          "scoresPerHead": [
+            1,
+            65
+          ]
+        },
+        "logicalKvBytesWritten": 128,
+        "logicalKvBytesAvailable": 8320,
+        "elapsedMs": 0.1766
+      }
+    },
+    {
+      "promptLength": 128,
+      "prefill": {
+        "inputTokenCount": 128,
+        "qRowsProjected": 128,
+        "kRowsProjected": 128,
+        "vRowsProjected": 128,
+        "attentionScoreShapePerHead": [
+          128,
+          128
+        ],
+        "attentionScoreElementsPerHead": 16384,
+        "attentionScoreElementsTotal": 32768,
+        "shapes": {
+          "X": [
+            128,
+            16
+          ],
+          "Q": [
+            128,
+            16
+          ],
+          "K": [
+            128,
+            16
+          ],
+          "V": [
+            128,
+            16
+          ],
+          "scoresPerHead": [
+            128,
+            128
+          ]
+        },
+        "logicalKvBytesWritten": 16384,
+        "logicalKvBytesAvailable": 16384,
+        "elapsedMs": 0.3655
+      },
+      "decode": {
+        "inputTokenCount": 1,
+        "qRowsProjected": 1,
+        "kRowsProjected": 1,
+        "vRowsProjected": 1,
+        "attentionScoreShapePerHead": [
+          1,
+          129
+        ],
+        "attentionScoreElementsPerHead": 129,
+        "attentionScoreElementsTotal": 258,
+        "shapes": {
+          "Q_new": [
+            1,
+            16
+          ],
+          "K_new": [
+            1,
+            16
+          ],
+          "V_new": [
+            1,
+            16
+          ],
+          "K_cache": [
+            129,
+            16
+          ],
+          "V_cache": [
+            129,
+            16
+          ],
+          "scoresPerHead": [
+            1,
+            129
+          ]
+        },
+        "logicalKvBytesWritten": 128,
+        "logicalKvBytesAvailable": 16512,
+        "elapsedMs": 0.199
+      }
+    }
+  ]
+}
