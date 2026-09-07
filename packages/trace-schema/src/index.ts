@@ -197,7 +197,7 @@ export function assertValidTrace(value: unknown): InferTabTrace {
   return value as InferTabTrace;
 }
 
-export const PREFILL_DECODE_SCHEMA_VERSION = "0.3.0" as const;
+export const PREFILL_DECODE_SCHEMA_VERSION = "0.3.1" as const;
 
 export interface TensorShapeMap {
   [name: string]: [number, number] | number[];
@@ -211,8 +211,17 @@ export interface PrefillDecodeStage {
   kRowsProjected: number;
   vRowsProjected: number;
   attentionScoreShapePerHead: number[];
-  attentionScoreElementsPerHead: number;
-  attentionScoreElementsTotal: number;
+  attentionScoreCellsPerHead: number;
+  attentionScoreCellsCausal: number;
+  attentionScoreCellsMasked: number;
+  attentionScoreCellsTotal: number;
+  attentionMath?: {
+    countsWhat: string;
+    dHead: number;
+    scoreMultiply: { formula: string; macScale: string; p?: number; t?: number };
+    valueAggregate: { formula: string; macScale: string };
+  };
+  pipeline?: Array<{ id: string; label: string; tensor: string }>;
   shapes: TensorShapeMap;
   logicalKvBytesWritten: number;
   logicalKvBytesAvailable: number;
@@ -244,6 +253,7 @@ export interface PrefillDecodeTrace {
     maxPos: number;
     promptLength: number;
     decodeSteps: number;
+    dHead: number;
   };
   prefill: PrefillDecodeStage;
   decode: PrefillDecodeStage;
@@ -262,7 +272,9 @@ function isStage(value: unknown): value is PrefillDecodeStage {
     typeof value.qRowsProjected === "number" &&
     typeof value.kRowsProjected === "number" &&
     typeof value.vRowsProjected === "number" &&
-    typeof value.attentionScoreElementsPerHead === "number" &&
+    typeof value.attentionScoreCellsPerHead === "number" &&
+    typeof value.attentionScoreCellsCausal === "number" &&
+    typeof value.attentionScoreCellsMasked === "number" &&
     typeof value.logicalKvBytesWritten === "number" &&
     typeof value.logicalKvBytesAvailable === "number" &&
     Array.isArray(value.attentionScoreShapePerHead)
@@ -299,4 +311,207 @@ export function assertValidPrefillDecodeTrace(value: unknown): PrefillDecodeTrac
     );
   }
   return value as PrefillDecodeTrace;
+}
+
+export const ARITHMETIC_MEMORY_SCHEMA_VERSION = "0.4.0" as const;
+
+export interface ArithmeticBlock {
+  score: { shape: string; formula: string; flops: number };
+  value: { shape: string; formula: string; flops: number };
+  attentionFlopsPerHead: number;
+  symbolicFormula: string;
+  unit: "FLOPs";
+  countsWhat: string;
+}
+
+export interface LogicalDataBlock {
+  qBytes: number;
+  kBytes: number;
+  vBytes: number;
+  scoreBytes: number;
+  outputBytes: number;
+  logicalBytesConsidered: number;
+  logicalCachedKvBytesPerHead: number;
+  logicalCachedKvBytes: number;
+  bytesPerElement: number;
+  dtype: string;
+  unit: "bytes";
+  kind: string;
+  denominator: string;
+  denominatorDetail: string;
+  notMeasuredTraffic: true;
+}
+
+export interface IntensityBlock {
+  flops: number;
+  logicalBytesConsidered: number;
+  arithmeticIntensity: number;
+  unit: "FLOPs per byte";
+  display: string;
+  formula: string;
+  meaning: string;
+  educationalModel: boolean;
+  notAProductionBenchmark: true;
+}
+
+export interface ArithmeticMemoryJob {
+  job: "prefill" | "decode";
+  P: number | null;
+  T: number | null;
+  dHead: number;
+  arithmetic: ArithmeticBlock;
+  data: LogicalDataBlock;
+  intensity: IntensityBlock;
+  shapes?: TensorShapeMap;
+}
+
+export interface ArithmeticMemoryScalingSide {
+  attentionFlopsPerHead: number;
+  qBytes: number;
+  kBytes: number;
+  vBytes: number;
+  scoreBytes: number;
+  outputBytes: number;
+  logicalBytesConsidered: number;
+  logicalCachedKvBytes: number;
+  arithmeticIntensity: number;
+  intensityDisplay: string;
+  symbolicFormula: string;
+  unitFlops: "FLOPs";
+  unitBytes: "bytes";
+  unitIntensity: "FLOPs per byte";
+}
+
+export interface ArithmeticMemoryScalingRow {
+  P: number;
+  T: number;
+  dHead: number;
+  prefill: ArithmeticMemoryScalingSide;
+  decode: ArithmeticMemoryScalingSide;
+}
+
+export interface ArithmeticMemoryTrace {
+  schemaVersion: typeof ARITHMETIC_MEMORY_SCHEMA_VERSION;
+  experimentId: "03-arithmetic-vs-memory";
+  prompt: string;
+  promptTokens: TraceToken[];
+  config: {
+    dModel: number;
+    nHeads: number;
+    dHead: number;
+    nLayers: number;
+    vocabSize: number;
+    seed: number;
+    device: string;
+    maxPos: number;
+    promptLength: number;
+    decodeSteps: number;
+    bytesPerElement: number;
+    dtype: string;
+    flopConvention: string;
+    logicalBytesDenominator: string;
+  };
+  flopConvention: {
+    statement: string;
+    warning: string;
+    countsWhat: string;
+    notTotalTransformerFlops: boolean;
+  };
+  units: {
+    arithmetic: "FLOPs";
+    logicalPayload: "bytes";
+    arithmeticIntensity: "FLOPs per byte";
+  };
+  prefill: ArithmeticMemoryJob;
+  decode: ArithmeticMemoryJob;
+  dtypeComparison: {
+    symbolicAttentionOutputUnchanged: boolean;
+    flopsUnchanged: boolean;
+    note: string;
+    float32: Record<string, unknown>;
+    float16: Record<string, unknown>;
+  };
+  scaling: ArithmeticMemoryScalingRow[];
+  sourcePair: {
+    experimentId: "02-prefill-vs-decode";
+    prefillShapes: TensorShapeMap;
+    decodeShapes: TensorShapeMap;
+    equivalence: {
+      cachedMatchesFullRecompute: boolean;
+      maxAbsLogitDiff: number;
+      tolerance: number;
+    };
+  };
+  caveats: {
+    attentionFlopsAreNotTotalModelFlops: true;
+    logicalBytesAreNotPhysicalMemoryTraffic: true;
+    arithmeticIntensityIsNotMeasuredPerformance: true;
+    cpuToyTimingsCannotEstablishGpuBottlenecks: true;
+    ffnProjectionAndWeightMovementDeferred: true;
+    rooflineNotImplemented: true;
+  };
+  measurementDisclaimer: string;
+  nextQuestion: string;
+}
+
+function isArithmeticJob(value: unknown): value is ArithmeticMemoryJob {
+  if (!isObject(value) || !isObject(value.arithmetic) || !isObject(value.data) || !isObject(value.intensity)) {
+    return false;
+  }
+  return (
+    typeof value.arithmetic.attentionFlopsPerHead === "number" &&
+    value.arithmetic.unit === "FLOPs" &&
+    typeof value.data.qBytes === "number" &&
+    typeof value.data.kBytes === "number" &&
+    typeof value.data.vBytes === "number" &&
+    typeof value.data.logicalBytesConsidered === "number" &&
+    value.data.unit === "bytes" &&
+    value.data.notMeasuredTraffic === true &&
+    typeof value.intensity.arithmeticIntensity === "number" &&
+    value.intensity.unit === "FLOPs per byte" &&
+    typeof value.intensity.display === "string" &&
+    value.intensity.notAProductionBenchmark === true
+  );
+}
+
+export function validateArithmeticMemoryTrace(value: unknown): TraceValidationError[] {
+  const errors: TraceValidationError[] = [];
+  if (!isObject(value)) {
+    return [{ path: "", message: "trace must be an object" }];
+  }
+  if (value.schemaVersion !== ARITHMETIC_MEMORY_SCHEMA_VERSION) {
+    errors.push({ path: "schemaVersion", message: `expected ${ARITHMETIC_MEMORY_SCHEMA_VERSION}` });
+  }
+  if (value.experimentId !== "03-arithmetic-vs-memory") {
+    errors.push({ path: "experimentId", message: "expected 03-arithmetic-vs-memory" });
+  }
+  if (!isArithmeticJob(value.prefill)) errors.push({ path: "prefill", message: "invalid job" });
+  if (!isArithmeticJob(value.decode)) errors.push({ path: "decode", message: "invalid job" });
+  if (!Array.isArray(value.scaling) || value.scaling.length < 1) {
+    errors.push({ path: "scaling", message: "required non-empty list" });
+  }
+  if (!isObject(value.units) || value.units.arithmetic !== "FLOPs" || value.units.logicalPayload !== "bytes") {
+    errors.push({ path: "units", message: "FLOPs and bytes must stay explicit" });
+  }
+  if (
+    !isObject(value.flopConvention) ||
+    typeof value.flopConvention.warning !== "string" ||
+    !value.flopConvention.warning.includes("Different FLOP-counting conventions")
+  ) {
+    errors.push({ path: "flopConvention", message: "convention warning required" });
+  }
+  if (!isObject(value.caveats) || value.caveats.logicalBytesAreNotPhysicalMemoryTraffic !== true) {
+    errors.push({ path: "caveats", message: "logical bytes must not be claimed as physical traffic" });
+  }
+  return errors;
+}
+
+export function assertValidArithmeticMemoryTrace(value: unknown): ArithmeticMemoryTrace {
+  const errors = validateArithmeticMemoryTrace(value);
+  if (errors.length > 0) {
+    throw new Error(
+      `Invalid arithmetic/memory trace: ${errors.map((e) => `${e.path}: ${e.message}`).join("; ")}`,
+    );
+  }
+  return value as ArithmeticMemoryTrace;
 }

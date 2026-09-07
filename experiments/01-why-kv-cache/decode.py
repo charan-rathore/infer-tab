@@ -89,7 +89,7 @@ def generate_naive(
     WHY this is wasteful: a causal Transformer will not let a future token
     change a past hidden state, so those past K/V rows are identical if we
     recompute them. We still rebuild Q for the whole prefix here, but the
-    number we record is only how many K/V rows were projected — not FLOPs.
+    number we record is only how many K/V rows were projected - not FLOPs.
     """
     ids = list(prompt_ids)
     steps: List[Dict[str, Any]] = []
@@ -130,7 +130,7 @@ def generate_naive(
             }
         )
 
-    return _mode("naive", "Without memory — rebuild every time", generated, itos, prompt_ids, steps), generated, logits_hist
+    return _mode("naive", "Without memory - rebuild every time", generated, itos, prompt_ids, steps), generated, logits_hist
 
 
 @torch.no_grad()
@@ -214,7 +214,7 @@ def generate_cached(
             }
         )
 
-    return _mode("cached", "With memory — keep what we already learned", generated, itos, prompt_ids, steps), generated, logits_hist
+    return _mode("cached", "With memory - keep what we already learned", generated, itos, prompt_ids, steps), generated, logits_hist
 
 
 def _mode(

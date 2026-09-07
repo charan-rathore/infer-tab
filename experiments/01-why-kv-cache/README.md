@@ -1,4 +1,4 @@
-# Experiment 01 — Why does a KV cache exist?
+# Experiment 01 - Why does a KV cache exist?
 
 Two implementations of the same tiny causal attention layer:
 

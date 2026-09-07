@@ -46,7 +46,7 @@ class TinyCausalLM(nn.Module):
 
     Shapes (after embedding a sequence of T tokens):
       x: [T, D]
-      Q, K, V: [T, D]   — later split into H heads of size D/H
+      Q, K, V: [T, D]   - later split into H heads of size D/H
     """
 
     def __init__(self, vocab_size: int, d_model: int = 16, n_heads: int = 2, max_pos: int = 128):
@@ -69,7 +69,7 @@ class TinyCausalLM(nn.Module):
         # all causally preceding context at this layer. In this one-layer
         # toy that context is token + position embeddings. Caching is legal
         # because a later token cannot rewrite an already-computed past
-        # hidden state in a causal Transformer — including after we add
+        # hidden state in a causal Transformer - including after we add
         # more layers later.
         self.W_q = nn.Linear(d_model, d_model, bias=False)
         self.W_k = nn.Linear(d_model, d_model, bias=False)

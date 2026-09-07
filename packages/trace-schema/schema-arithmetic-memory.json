@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infertab.dev/schema/trace-arithmetic-memory-v0.4.0.json",
+  "title": "InferTabArithmeticMemoryTrace",
+  "description": "Phase 2 experiment: attention FLOPs versus logical tensor bytes. Independent of the UI. Byte fields are logical payloads, not measured HBM or DRAM traffic.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "experimentId",
+    "prompt",
+    "promptTokens",
+    "config",
+    "flopConvention",
+    "units",
+    "prefill",
+    "decode",
+    "dtypeComparison",
+    "scaling",
+    "sourcePair",
+    "caveats",
+    "measurementDisclaimer",
+    "nextQuestion"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "0.4.0" },
+    "experimentId": { "type": "string", "const": "03-arithmetic-vs-memory" },
+    "prompt": { "type": "string" },
+    "promptTokens": { "type": "array" },
+    "config": { "type": "object" },
+    "flopConvention": { "type": "object" },
+    "units": {
+      "type": "object",
+      "required": ["arithmetic", "logicalPayload", "arithmeticIntensity"],
+      "properties": {
+        "arithmetic": { "const": "FLOPs" },
+        "logicalPayload": { "const": "bytes" },
+        "arithmeticIntensity": { "const": "FLOPs per byte" }
+      }
+    },
+    "prefill": { "type": "object" },
+    "decode": { "type": "object" },
+    "dtypeComparison": { "type": "object" },
+    "scaling": { "type": "array", "minItems": 1 },
+    "sourcePair": { "type": "object" },
+    "caveats": { "type": "object" },
+    "measurementDisclaimer": { "type": "string", "minLength": 1 },
+    "nextQuestion": { "type": "string", "minLength": 1 }
+  }
+}

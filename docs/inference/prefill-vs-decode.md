@@ -1,9 +1,9 @@
 # Prefill vs decode
 
-Two jobs, one model.
+Two jobs, one model. The square versus the row is an **attention-score** story.
 
-**Prefill** reads a prompt that already exists. Every token can be a query at once. A causal mask stops token i from seeing token j > i. The score grid is `[P, P]` per head.
+**Read the existing context.** Every prompt token can be a query at once because those tokens already exist. Scores per head are `[P, P]`. A causal cover hides the future triangle `P(P-1)/2`. Implementations may still materialize that triangle; the count is conceptual.
 
-**Decode** writes the next token. There is one new query. It reads the K/V shelf, which is now longer. The score row is `[1, P+1]` per head after the new K/V row is appended.
+**Write one new piece.** One new query. After the new K/V row is appended, scores are `[1, P+1]`. No future keys exist for that newest query.
 
-This is why the two stages *look* different. It is not yet a proof that one is compute-bound and the other is memory-bandwidth-bound.
+Dominant attention multiplies per head scale like `P² × d_h` for the square and `T × d_h` for the row. That is not whole-model FLOPs and not a GPU bottleneck claim.

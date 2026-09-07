@@ -46,7 +46,7 @@
   "modes": {
     "naive": {
       "id": "naive",
-      "title": "Without memory \u2014 rebuild every time",
+      "title": "Without memory - rebuild every time",
       "generatedTokens": [
         {
           "id": 14,
@@ -1429,7 +1429,7 @@
     },
     "cached": {
       "id": "cached",
-      "title": "With memory \u2014 keep what we already learned",
+      "title": "With memory - keep what we already learned",
       "generatedTokens": [
         {
           "id": 14,

@@ -29,8 +29,9 @@ Reference a GitLab/GitHub issue as `#123` when there is one.
 ## Local checks before you push
 
 ```bash
-cd experiments/01-why-kv-cache && python3 -m pytest -q
-cd ../../apps/web && npm run lint && npm run build
+python3 -m pytest tests experiments/01-why-kv-cache experiments/02-prefill-vs-decode experiments/03-arithmetic-vs-memory -q
+python3 scripts/check_no_emdash.py
+cd apps/web && npm run lint && npm run typecheck && npm run test && npm run check-trace && npm run build
 ```
 
 Do not commit `.env`, API keys, or model weights.

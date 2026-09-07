@@ -40,8 +40,9 @@ def main() -> None:
     print(f"prefill shapes: {pre['shapes']}")
     print(f"decode  shapes: {dec['shapes']}")
     print(
-        f"score cells/head  prefill={pre['attentionScoreElementsPerHead']}  "
-        f"decode={dec['attentionScoreElementsPerHead']}"
+        f"score cells/head  prefill={pre['attentionScoreCellsPerHead']} "
+        f"(causal {pre['attentionScoreCellsCausal']}, masked {pre['attentionScoreCellsMasked']})  "
+        f"decode={dec['attentionScoreCellsPerHead']}"
     )
     print(f"equivalence: {trace['equivalence']}")
     print("scaling P:", [row["promptLength"] for row in trace["scaling"]])
