@@ -42,7 +42,7 @@ npm install
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000). The journey is 01 Repeating work, 02 Read vs write, 03 Math vs data. Each page has Learn, Inspect, and Prove. How we know the numbers is behind `How do we know?`, not on the first screen.
+Then open [http://localhost:3000](http://localhost:3000). The journey is 01 Repeating work, 02 Read vs write, 03 Math vs data. The routes are lenses of one persistent machine with Learn, Inspect, and Prove. Each discovery begins with a prediction, changes one mechanism, and derives the consequence from a recorded trace. Recording and replay contains custom prompts and portable replay files.
 
 See [docs/inference/scaling-book.md](docs/inference/scaling-book.md) for how these map to the Scaling Book.
 
@@ -74,3 +74,5 @@ Roofline plots, KV eviction, compression, PagedAttention, prefix caching, quanti
 ## License
 
 MIT. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+See [the product-system architecture](docs/inference/product-system.md) for the shared event model, object identity, source-of-truth boundaries, and exact discovery journeys.

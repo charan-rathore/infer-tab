@@ -1,21 +1,11 @@
-import sample from "../public/traces/sample-why-kv-cache.json";
-import { JourneyNav } from "@/components/JourneyNav";
-import { Playground } from "@/components/Playground";
-import { assertValidTrace } from "@/lib/schema";
-
-const initialTrace = assertValidTrace(sample);
-
+/** Introduce the first lens; the persistent machine itself lives in the shared layout. */
 export default function HomePage() {
   return (
-    <main className="page">
-      <p className="eyebrow">InferTab · 01</p>
-      <h1>What should the model do with the past?</h1>
+    <header>
+      <h1>Build. Notice. Keep.</h1>
       <p className="lede">
-        Each new word looks back. Try rebuilding that past. Then try keeping
-        finished work. The name comes after you see the difference.
+        Make the machine repeat itself. Then change one rule.
       </p>
-      <JourneyNav current="kv" />
-      <Playground initialTrace={initialTrace} />
-    </main>
+    </header>
   );
 }

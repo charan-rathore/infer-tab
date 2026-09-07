@@ -1,21 +1,11 @@
-import sample from "../../public/traces/sample-prefill-decode.json";
-import { JourneyNav } from "@/components/JourneyNav";
-import { PrefillPlayground } from "@/components/PrefillPlayground";
-import { assertValidPrefillDecodeTrace } from "@/lib/schema";
-
-const initialTrace = assertValidPrefillDecodeTrace(sample);
-
+/** Introduce the second lens without creating another simulation instance. */
 export default function PrefillDecodePage() {
   return (
-    <main className="page">
-      <p className="eyebrow">InferTab · 02</p>
-      <h1>Read the room. Then write one word.</h1>
+    <header>
+      <h1>The shelf stays. The questions change.</h1>
       <p className="lede">
-        Click a word and see which earlier words it may read. Later words stay
-        covered. Then switch to the single new question.
+        Follow the stored past from many existing questions to one new question.
       </p>
-      <JourneyNav current="prefill" />
-      <PrefillPlayground initialTrace={initialTrace} />
-    </main>
+    </header>
   );
 }

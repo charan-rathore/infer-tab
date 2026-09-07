@@ -1,0 +1,532 @@
+{
+  "schemaVersion": "0.4.0",
+  "experimentId": "03-arithmetic-vs-memory",
+  "prompt": "the cat sat on the mat",
+  "promptTokens": [
+    {
+      "id": 13,
+      "text": "the",
+      "position": 0
+    },
+    {
+      "id": 4,
+      "text": "cat",
+      "position": 1
+    },
+    {
+      "id": 12,
+      "text": "sat",
+      "position": 2
+    },
+    {
+      "id": 11,
+      "text": "on",
+      "position": 3
+    },
+    {
+      "id": 13,
+      "text": "the",
+      "position": 4
+    },
+    {
+      "id": 9,
+      "text": "mat",
+      "position": 5
+    }
+  ],
+  "config": {
+    "dModel": 16,
+    "nHeads": 2,
+    "dHead": 8,
+    "nLayers": 1,
+    "vocabSize": 15,
+    "seed": 42,
+    "device": "cpu",
+    "maxPos": 256,
+    "promptLength": 6,
+    "decodeSteps": 1,
+    "bytesPerElement": 4,
+    "dtype": "float32",
+    "flopConvention": "one multiply + one add = approximately 2 FLOPs",
+    "logicalBytesDenominator": "qBytes + kBytes + vBytes"
+  },
+  "flopConvention": {
+    "statement": "one multiply + one add = approximately 2 FLOPs",
+    "warning": "Different FLOP-counting conventions exist. InferTab uses multiply + add = 2 FLOPs. Some references count a multiply-accumulate as 1. This is a convention for teaching, not a hardware measurement.",
+    "countsWhat": "attention score + value aggregation per head",
+    "notTotalTransformerFlops": true
+  },
+  "units": {
+    "arithmetic": "FLOPs",
+    "logicalPayload": "bytes",
+    "arithmeticIntensity": "FLOPs per byte"
+  },
+  "prefill": {
+    "job": "prefill",
+    "P": 6,
+    "T": null,
+    "dHead": 8,
+    "arithmetic": {
+      "score": {
+        "shape": "Q[P,d_h] \u00d7 K\u1d40[d_h,P] \u2192 [P,P]",
+        "formula": "2 \u00d7 P \u00d7 P \u00d7 d_h",
+        "flops": 576
+      },
+      "value": {
+        "shape": "A[P,P] \u00d7 V[P,d_h] \u2192 [P,d_h]",
+        "formula": "2 \u00d7 P \u00d7 P \u00d7 d_h",
+        "flops": 576
+      },
+      "attentionFlopsPerHead": 1152,
+      "symbolicFormula": "4 \u00d7 P \u00d7 P \u00d7 d_h",
+      "unit": "FLOPs",
+      "countsWhat": "attention score + value aggregation per head, not total Transformer FLOPs"
+    },
+    "data": {
+      "qBytes": 192,
+      "kBytes": 192,
+      "vBytes": 192,
+      "scoreBytes": 144,
+      "outputBytes": 192,
+      "logicalBytesConsidered": 576,
+      "logicalCachedKvBytesPerHead": 384,
+      "logicalCachedKvBytes": 768,
+      "bytesPerElement": 4,
+      "dtype": "float32",
+      "unit": "bytes",
+      "kind": "logical tensor payloads, not measured hardware traffic",
+      "denominator": "qBytes + kBytes + vBytes",
+      "denominatorDetail": "per-head Q, K, and V payloads that the attention step needs available",
+      "notMeasuredTraffic": true
+    },
+    "intensity": {
+      "flops": 1152,
+      "logicalBytesConsidered": 576,
+      "arithmeticIntensity": 2.0,
+      "unit": "FLOPs per byte",
+      "display": "1152 FLOPs / 576 bytes = 2 FLOPs per byte",
+      "formula": "attentionFlopsPerHead / (qBytes + kBytes + vBytes)",
+      "meaning": "How much math do we get to perform for each byte of data we need available?",
+      "educationalModel": true,
+      "notAProductionBenchmark": true
+    },
+    "shapes": {
+      "X": [
+        6,
+        16
+      ],
+      "Q": [
+        6,
+        16
+      ],
+      "K": [
+        6,
+        16
+      ],
+      "V": [
+        6,
+        16
+      ],
+      "scoresPerHead": [
+        6,
+        6
+      ],
+      "scoresAllHeads": [
+        2,
+        6,
+        6
+      ]
+    }
+  },
+  "decode": {
+    "job": "decode",
+    "P": null,
+    "T": 7,
+    "dHead": 8,
+    "arithmetic": {
+      "score": {
+        "shape": "Q_new[1,d_h] \u00d7 K_cache\u1d40[d_h,T] \u2192 [1,T]",
+        "formula": "2 \u00d7 T \u00d7 d_h",
+        "flops": 112
+      },
+      "value": {
+        "shape": "A[1,T] \u00d7 V_cache[T,d_h] \u2192 [1,d_h]",
+        "formula": "2 \u00d7 T \u00d7 d_h",
+        "flops": 112
+      },
+      "attentionFlopsPerHead": 224,
+      "symbolicFormula": "4 \u00d7 T \u00d7 d_h",
+      "unit": "FLOPs",
+      "countsWhat": "attention score + value aggregation per head, not total Transformer FLOPs"
+    },
+    "data": {
+      "qBytes": 32,
+      "kBytes": 224,
+      "vBytes": 224,
+      "scoreBytes": 28,
+      "outputBytes": 32,
+      "logicalBytesConsidered": 480,
+      "logicalCachedKvBytesPerHead": 448,
+      "logicalCachedKvBytes": 896,
+      "bytesPerElement": 4,
+      "dtype": "float32",
+      "unit": "bytes",
+      "kind": "logical tensor payloads, not measured hardware traffic",
+      "denominator": "qBytes + kBytes + vBytes",
+      "denominatorDetail": "per-head Q, K, and V payloads that the attention step needs available",
+      "notMeasuredTraffic": true
+    },
+    "intensity": {
+      "flops": 224,
+      "logicalBytesConsidered": 480,
+      "arithmeticIntensity": 0.4666666666666667,
+      "unit": "FLOPs per byte",
+      "display": "224 FLOPs / 480 bytes = 0.467 FLOPs per byte",
+      "formula": "attentionFlopsPerHead / (qBytes + kBytes + vBytes)",
+      "meaning": "How much math do we get to perform for each byte of data we need available?",
+      "educationalModel": true,
+      "notAProductionBenchmark": true
+    },
+    "shapes": {
+      "Q_new": [
+        1,
+        16
+      ],
+      "K_new": [
+        1,
+        16
+      ],
+      "V_new": [
+        1,
+        16
+      ],
+      "K_cache": [
+        7,
+        16
+      ],
+      "V_cache": [
+        7,
+        16
+      ],
+      "scoresPerHead": [
+        1,
+        7
+      ],
+      "scoresAllHeads": [
+        2,
+        1,
+        7
+      ]
+    }
+  },
+  "dtypeComparison": {
+    "symbolicAttentionOutputUnchanged": true,
+    "flopsUnchanged": true,
+    "note": "Changing float32 \u2192 float16 halves every logical tensor payload because each element occupies 2 bytes instead of 4. The symbolic attention formulas and FLOP counts do not change. This model does not claim a different numerical attention output.",
+    "float32": {
+      "bytesPerElement": 4,
+      "prefill": {
+        "attentionFlopsPerHead": 1152,
+        "logicalBytesConsidered": 576,
+        "qBytes": 192,
+        "kBytes": 192,
+        "vBytes": 192,
+        "logicalCachedKvBytes": 768,
+        "arithmeticIntensity": 2.0
+      },
+      "decode": {
+        "attentionFlopsPerHead": 224,
+        "logicalBytesConsidered": 480,
+        "qBytes": 32,
+        "kBytes": 224,
+        "vBytes": 224,
+        "logicalCachedKvBytes": 896,
+        "arithmeticIntensity": 0.4666666666666667
+      }
+    },
+    "float16": {
+      "bytesPerElement": 2,
+      "prefill": {
+        "attentionFlopsPerHead": 1152,
+        "logicalBytesConsidered": 288,
+        "qBytes": 96,
+        "kBytes": 96,
+        "vBytes": 96,
+        "logicalCachedKvBytes": 384,
+        "arithmeticIntensity": 4.0
+      },
+      "decode": {
+        "attentionFlopsPerHead": 224,
+        "logicalBytesConsidered": 240,
+        "qBytes": 16,
+        "kBytes": 112,
+        "vBytes": 112,
+        "logicalCachedKvBytes": 448,
+        "arithmeticIntensity": 0.9333333333333333
+      }
+    }
+  },
+  "scaling": [
+    {
+      "P": 8,
+      "T": 9,
+      "dHead": 8,
+      "prefill": {
+        "attentionFlopsPerHead": 2048,
+        "qBytes": 256,
+        "kBytes": 256,
+        "vBytes": 256,
+        "scoreBytes": 256,
+        "outputBytes": 256,
+        "logicalBytesConsidered": 768,
+        "logicalCachedKvBytes": 1024,
+        "arithmeticIntensity": 2.6666666666666665,
+        "intensityDisplay": "2048 FLOPs / 768 bytes = 2.667 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 P \u00d7 P \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      },
+      "decode": {
+        "attentionFlopsPerHead": 288,
+        "qBytes": 32,
+        "kBytes": 288,
+        "vBytes": 288,
+        "scoreBytes": 36,
+        "outputBytes": 32,
+        "logicalBytesConsidered": 608,
+        "logicalCachedKvBytes": 1152,
+        "arithmeticIntensity": 0.47368421052631576,
+        "intensityDisplay": "288 FLOPs / 608 bytes = 0.474 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 T \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      }
+    },
+    {
+      "P": 16,
+      "T": 17,
+      "dHead": 8,
+      "prefill": {
+        "attentionFlopsPerHead": 8192,
+        "qBytes": 512,
+        "kBytes": 512,
+        "vBytes": 512,
+        "scoreBytes": 1024,
+        "outputBytes": 512,
+        "logicalBytesConsidered": 1536,
+        "logicalCachedKvBytes": 2048,
+        "arithmeticIntensity": 5.333333333333333,
+        "intensityDisplay": "8192 FLOPs / 1536 bytes = 5.333 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 P \u00d7 P \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      },
+      "decode": {
+        "attentionFlopsPerHead": 544,
+        "qBytes": 32,
+        "kBytes": 544,
+        "vBytes": 544,
+        "scoreBytes": 68,
+        "outputBytes": 32,
+        "logicalBytesConsidered": 1120,
+        "logicalCachedKvBytes": 2176,
+        "arithmeticIntensity": 0.4857142857142857,
+        "intensityDisplay": "544 FLOPs / 1120 bytes = 0.486 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 T \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      }
+    },
+    {
+      "P": 32,
+      "T": 33,
+      "dHead": 8,
+      "prefill": {
+        "attentionFlopsPerHead": 32768,
+        "qBytes": 1024,
+        "kBytes": 1024,
+        "vBytes": 1024,
+        "scoreBytes": 4096,
+        "outputBytes": 1024,
+        "logicalBytesConsidered": 3072,
+        "logicalCachedKvBytes": 4096,
+        "arithmeticIntensity": 10.666666666666666,
+        "intensityDisplay": "32768 FLOPs / 3072 bytes = 10.667 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 P \u00d7 P \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      },
+      "decode": {
+        "attentionFlopsPerHead": 1056,
+        "qBytes": 32,
+        "kBytes": 1056,
+        "vBytes": 1056,
+        "scoreBytes": 132,
+        "outputBytes": 32,
+        "logicalBytesConsidered": 2144,
+        "logicalCachedKvBytes": 4224,
+        "arithmeticIntensity": 0.4925373134328358,
+        "intensityDisplay": "1056 FLOPs / 2144 bytes = 0.493 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 T \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      }
+    },
+    {
+      "P": 64,
+      "T": 65,
+      "dHead": 8,
+      "prefill": {
+        "attentionFlopsPerHead": 131072,
+        "qBytes": 2048,
+        "kBytes": 2048,
+        "vBytes": 2048,
+        "scoreBytes": 16384,
+        "outputBytes": 2048,
+        "logicalBytesConsidered": 6144,
+        "logicalCachedKvBytes": 8192,
+        "arithmeticIntensity": 21.333333333333332,
+        "intensityDisplay": "131072 FLOPs / 6144 bytes = 21.333 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 P \u00d7 P \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      },
+      "decode": {
+        "attentionFlopsPerHead": 2080,
+        "qBytes": 32,
+        "kBytes": 2080,
+        "vBytes": 2080,
+        "scoreBytes": 260,
+        "outputBytes": 32,
+        "logicalBytesConsidered": 4192,
+        "logicalCachedKvBytes": 8320,
+        "arithmeticIntensity": 0.4961832061068702,
+        "intensityDisplay": "2080 FLOPs / 4192 bytes = 0.496 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 T \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      }
+    },
+    {
+      "P": 128,
+      "T": 129,
+      "dHead": 8,
+      "prefill": {
+        "attentionFlopsPerHead": 524288,
+        "qBytes": 4096,
+        "kBytes": 4096,
+        "vBytes": 4096,
+        "scoreBytes": 65536,
+        "outputBytes": 4096,
+        "logicalBytesConsidered": 12288,
+        "logicalCachedKvBytes": 16384,
+        "arithmeticIntensity": 42.666666666666664,
+        "intensityDisplay": "524288 FLOPs / 12288 bytes = 42.667 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 P \u00d7 P \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      },
+      "decode": {
+        "attentionFlopsPerHead": 4128,
+        "qBytes": 32,
+        "kBytes": 4128,
+        "vBytes": 4128,
+        "scoreBytes": 516,
+        "outputBytes": 32,
+        "logicalBytesConsidered": 8288,
+        "logicalCachedKvBytes": 16512,
+        "arithmeticIntensity": 0.4980694980694981,
+        "intensityDisplay": "4128 FLOPs / 8288 bytes = 0.498 FLOPs per byte",
+        "symbolicFormula": "4 \u00d7 T \u00d7 d_h",
+        "unitFlops": "FLOPs",
+        "unitBytes": "bytes",
+        "unitIntensity": "FLOPs per byte"
+      }
+    }
+  ],
+  "sourcePair": {
+    "experimentId": "02-prefill-vs-decode",
+    "prefillShapes": {
+      "X": [
+        6,
+        16
+      ],
+      "Q": [
+        6,
+        16
+      ],
+      "K": [
+        6,
+        16
+      ],
+      "V": [
+        6,
+        16
+      ],
+      "scoresPerHead": [
+        6,
+        6
+      ],
+      "scoresAllHeads": [
+        2,
+        6,
+        6
+      ]
+    },
+    "decodeShapes": {
+      "Q_new": [
+        1,
+        16
+      ],
+      "K_new": [
+        1,
+        16
+      ],
+      "V_new": [
+        1,
+        16
+      ],
+      "K_cache": [
+        7,
+        16
+      ],
+      "V_cache": [
+        7,
+        16
+      ],
+      "scoresPerHead": [
+        1,
+        7
+      ],
+      "scoresAllHeads": [
+        2,
+        1,
+        7
+      ]
+    },
+    "equivalence": {
+      "cachedMatchesFullRecompute": true,
+      "maxAbsLogitDiff": 0.0,
+      "tolerance": 1e-05
+    }
+  },
+  "caveats": {
+    "attentionFlopsAreNotTotalModelFlops": true,
+    "logicalBytesAreNotPhysicalMemoryTraffic": true,
+    "arithmeticIntensityIsNotMeasuredPerformance": true,
+    "cpuToyTimingsCannotEstablishGpuBottlenecks": true,
+    "ffnProjectionAndWeightMovementDeferred": true,
+    "rooflineNotImplemented": true
+  },
+  "measurementDisclaimer": "Attention FLOPs here are score calculation plus value aggregation per head under multiply+add = 2 FLOPs. They are not total Transformer FLOPs (Q/K/V projections, the output mix, and any FFN are deferred). Byte counts are logical tensor payloads: elements \u00d7 bytesPerElement. They are not measured HBM or DRAM traffic; real hardware movement depends on caching, tiling, kernel fusion, SRAM/register reuse, and the implementation. Arithmetic intensity is FLOPs / those logical bytes - an educational lower-level model of the trade-off, not a production benchmark and not measured performance. CPU toy timings cannot establish GPU bottlenecks. No roofline is implemented.",
+  "nextQuestion": "Once math and data are visible as two currencies, how would we tell whether a real machine is waiting on arithmetic or waiting to fetch the bytes the arithmetic needs?"
+}

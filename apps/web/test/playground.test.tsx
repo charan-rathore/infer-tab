@@ -1,91 +1,137 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import sample from "../public/traces/sample-why-kv-cache.json";
-import { Playground } from "@/components/Playground";
-import { assertValidTrace } from "@/lib/schema";
-
-const trace = assertValidTrace(sample);
-
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { JourneyMachine } from "@/components/JourneyMachine";
+import { MachineProvider } from "@/components/MachineProvider";
+import { traces } from "./simulation-fixture";
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+/** Render the first lens in the real shared provider used by navigation. */
 function renderOne() {
-  const view = render(<Playground initialTrace={trace} />);
-  return view;
+  return render(
+    <MachineProvider traces={traces}>
+      <JourneyMachine lesson="01" />
+    </MachineProvider>,
+  );
+}
+/** Reach the observed rebuild failure through a committed prediction. */
+function causeFailure() {
+  fireEvent.click(screen.getByRole("button", { name: "Build the first word" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Only the newest block" }),
+  );
+}
+/** Apply the one mechanism change after encountering repeated work. */
+function keepWork() {
+  causeFailure();
+  fireEvent.click(screen.getByRole("button", { name: "Keep finished work" }));
 }
 
-describe("experiment 01 playground", () => {
-  it("starts by asking what to do with the past", () => {
+describe("Experiment 01 discovery", () => {
+  it("offers a concrete first action without exposing the term or mechanism", () => {
     renderOne();
     expect(
-      screen.getByText("The model needs one more token. What should it do with the past?"),
-    ).toBeInTheDocument();
-  });
-
-  it("rebuild walk accumulates work from the trace", () => {
-    const { container } = renderOne();
-    fireEvent.click(within(container).getByRole("button", { name: /Every old block walks back/i }));
-    fireEvent.click(within(container).getByRole("button", { name: "Next token" }));
-    expect(within(container).getByText(/Work done again this walk/)).toHaveTextContent("6");
-    fireEvent.click(within(container).getByRole("button", { name: "Next token" }));
-    expect(within(container).getByText(/Work done again this walk/)).toHaveTextContent("13");
-  });
-
-  it("rapid next clicks do not skip past the last step", () => {
-    const { container } = renderOne();
-    fireEvent.click(within(container).getByRole("button", { name: /Every old block walks back/i }));
-    const next = within(container).getByRole("button", { name: "Next token" });
-    for (let i = 0; i < 20; i += 1) fireEvent.click(next);
-    expect(within(container).getByText("Step 6 of 6")).toBeInTheDocument();
-    expect(next).toBeDisabled();
-  });
-
-  it("reset returns the walk to ready", () => {
-    const { container } = renderOne();
-    fireEvent.click(within(container).getByRole("button", { name: /Every old block walks back/i }));
-    fireEvent.click(within(container).getByRole("button", { name: "Next token" }));
-    fireEvent.click(within(container).getByRole("button", { name: "Reset walk" }));
-    expect(within(container).getByText("Ready")).toBeInTheDocument();
-  });
-
-  it("Run both uses the same prompt on both sides", () => {
-    const { container } = renderOne();
-    fireEvent.click(within(container).getByRole("button", { name: "Run both" }));
-    expect(within(container).getByText("Same prompt. Same weights. Two policies.")).toBeInTheDocument();
-  });
-
-  it("switching policy clears the walk", () => {
-    const { container } = renderOne();
-    fireEvent.click(within(container).getByRole("button", { name: /Every old block walks back/i }));
-    fireEvent.click(within(container).getByRole("button", { name: "Next token" }));
-    fireEvent.click(within(container).getByRole("button", { name: "Keep finished work" }));
-    expect(within(container).getByText("Ready")).toBeInTheDocument();
-  });
-
-  it("sample source is not presented as a live run", () => {
-    const { container } = renderOne();
-    expect(within(container).getByText(/Committed sample trace/)).toBeInTheDocument();
-    expect(within(container).queryByText(/Live run from the local Python experiment/)).not.toBeInTheDocument();
-  });
-
-  it("failed Python is labelled as sample fallback", async () => {
-    const { container } = renderOne();
-    global.fetch = async () =>
-      ({
-        ok: true,
-        json: async () => ({ fallback: true, trace }),
-      }) as Response;
-    fireEvent.change(within(container).getByLabelText("Short sentence"), {
-      target: { value: "the cat sat" },
-    });
-    fireEvent.click(within(container).getByRole("button", { name: "Use this sentence" }));
+      screen.getByRole("button", { name: "Build the first word" }),
+    ).toBeVisible();
+    expect(screen.queryByText(/You made a KV cache/)).not.toBeInTheDocument();
     expect(
-      await within(container).findByRole("alert"),
-    ).toHaveTextContent(/committed sample trace, not a live run/i);
+      screen.queryByRole("button", { name: "Keep finished work" }),
+    ).not.toBeInTheDocument();
   });
-
-  it("Inspect Why numbers derive 51 from the series", () => {
+  it("records a prediction before exposing repeated work", () => {
+    renderOne();
+    causeFailure();
+    expect(screen.getByText(/Your prediction/)).toHaveTextContent(
+      "Only the newest block",
+    );
+    expect(screen.getByText(/The next step built/)).toHaveTextContent("7 rows");
+    expect(screen.getByText(/Built across observed steps/)).toHaveTextContent(
+      "13",
+    );
+  });
+  it("preserves object DOM and playhead when comparing storage policies", () => {
     const { container } = renderOne();
-    fireEvent.click(within(container).getByRole("button", { name: /Every old block walks back/i }));
-    fireEvent.click(within(container).getByRole("tab", { name: /Inspect/i }));
-    fireEvent.click(within(container).getByRole("button", { name: /rows built in total/i }));
-    expect(within(container).getByText("6 + 7 + 8 + 9 + 10 + 11")).toBeInTheDocument();
+    causeFailure();
+    const object = container.querySelector("[data-object-id]");
+    fireEvent.click(screen.getByRole("button", { name: "Keep finished work" }));
+    expect(container.querySelector("[data-object-id]")).toBe(object);
+    expect(object).toHaveAttribute("data-object-state", "reused");
+    fireEvent.click(screen.getByRole("button", { name: "Rebuild the past" }));
+    expect(container.querySelector("[data-object-id]")).toBe(object);
+    expect(object).toHaveAttribute("data-object-state", "built");
+    expect(screen.getByText(/Built across observed steps/)).toHaveTextContent(
+      "Step 2 of 6",
+    );
+  });
+  it("reveals observed sums before naming the cache and exposing the next bottleneck", () => {
+    renderOne();
+    keepWork();
+    expect(screen.queryByText(/You made a KV cache/)).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Derive it from what happened" }),
+    );
+    const derivation = screen.getByRole("region", { name: "Trace derivation" });
+    expect(derivation).toHaveTextContent("6 + 7 = 13 rows");
+    expect(derivation).toHaveTextContent("6 + 1 = 7 rows");
+    fireEvent.click(
+      screen.getByRole("button", { name: "What is this called?" }),
+    );
+    expect(screen.getByText(/You made a KV cache/)).toBeVisible();
+    fireEvent.click(
+      screen.getByRole("button", { name: "What still costs work?" }),
+    );
+    expect(
+      screen.getByRole("link", { name: /Follow the shelf into 02/ }),
+    ).toHaveAttribute("href", "/prefill-vs-decode");
+  });
+  it("clamps rapid stepping and scrubs without losing the prediction", () => {
+    renderOne();
+    keepWork();
+    const next = screen.getByRole("button", { name: "Next token" });
+    for (let i = 0; i < 15; i++) fireEvent.click(next);
+    expect(next).toBeDisabled();
+    expect(screen.getByText(/Built across observed steps/)).toHaveTextContent(
+      "Step 6 of 6",
+    );
+    fireEvent.change(screen.getByRole("slider", { name: "Observed step" }), {
+      target: { value: "1" },
+    });
+    expect(screen.getByText(/Built across observed steps/)).toHaveTextContent(
+      "Step 2 of 6",
+    );
+    expect(screen.getByText(/Your prediction/)).toHaveTextContent(
+      "Only the newest block",
+    );
+  });
+  it("does not count emitted output as stored work", () => {
+    const { container } = renderOne();
+    keepWork();
+    expect(
+      container.querySelector('[data-object-state="output"]'),
+    ).toHaveTextContent("Not fed back yet");
+  });
+  it("labels Python fallback and resets discoveries against the new recording", async () => {
+    renderOne();
+    keepWork();
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ trace: traces.kv, fallback: true }),
+        }),
+    );
+    fireEvent.click(screen.getByText("Recording and replay"));
+    fireEvent.change(screen.getByLabelText("Short sentence"), {
+      target: { value: "a different prompt" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Use this sentence" }));
+    await screen.findAllByText(/committed sample trace, not a live run/);
+    expect(
+      screen.getByRole("button", { name: "Build the first word" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Short sentence")).toHaveValue(
+      traces.kv.prompt,
+    );
+    vi.unstubAllGlobals();
   });
 });
