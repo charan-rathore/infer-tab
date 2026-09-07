@@ -1,4 +1,6 @@
 export type {
+  ArithmeticMemoryJob,
+  ArithmeticMemoryTrace,
   InferTabTrace,
   KvBlock,
   ModeId,
@@ -10,8 +12,10 @@ export type {
 } from "@infertab/trace-schema";
 
 export {
+  assertValidArithmeticMemoryTrace,
   assertValidPrefillDecodeTrace,
   assertValidTrace,
+  validateArithmeticMemoryTrace,
   validatePrefillDecodeTrace,
   validateTrace,
 } from "@infertab/trace-schema";

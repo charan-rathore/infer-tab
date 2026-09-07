@@ -13,8 +13,10 @@ STAGE_INTS = (
     "qRowsProjected",
     "kRowsProjected",
     "vRowsProjected",
-    "attentionScoreElementsPerHead",
-    "attentionScoreElementsTotal",
+    "attentionScoreCellsPerHead",
+    "attentionScoreCellsCausal",
+    "attentionScoreCellsMasked",
+    "attentionScoreCellsTotal",
     "logicalKvBytesWritten",
     "logicalKvBytesAvailable",
 )
@@ -24,8 +26,8 @@ def validate_trace(trace: Any) -> List[str]:
     errors: List[str] = []
     if not isinstance(trace, dict):
         return ["trace must be an object"]
-    if trace.get("schemaVersion") != "0.3.0":
-        errors.append("schemaVersion must be 0.3.0")
+    if trace.get("schemaVersion") != "0.3.1":
+        errors.append("schemaVersion must be 0.3.1")
     if trace.get("experimentId") != "02-prefill-vs-decode":
         errors.append("experimentId must be 02-prefill-vs-decode")
     for key in ("prompt", "measurementDisclaimer"):
@@ -62,6 +64,12 @@ def _validate_stage(stage: Any, name: str, shape_keys: tuple) -> List[str]:
                 errors.append(f"{name}.shapes.{key} must be [rows, cols]")
     if not isinstance(stage.get("elapsedMs"), (int, float)):
         errors.append(f"{name}.elapsedMs must be a number")
+    cells = stage.get("attentionScoreCellsPerHead")
+    causal = stage.get("attentionScoreCellsCausal")
+    masked = stage.get("attentionScoreCellsMasked")
+    if isinstance(cells, int) and isinstance(causal, int) and isinstance(masked, int):
+        if causal + masked != cells:
+            errors.append(f"{name} causal+masked cells must equal attentionScoreCellsPerHead")
     return errors
 
 

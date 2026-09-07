@@ -40,7 +40,7 @@ Core idea: Train tiny modules and special lookahead tokens that estimate future 
 
 Why InferTab may care: It makes "importance" a prediction about the future, not only a look at the past.
 
-Experiment we could eventually run: A two-pass viz — score tokens from the prompt alone vs. after peeking at later queries — and show which rows would have been wrongly dropped.
+Experiment we could eventually run: A two-pass viz - score tokens from the prompt alone vs. after peeking at later queries - and show which rows would have been wrongly dropped.
 
 ## xKV
 
@@ -76,7 +76,7 @@ Experiment we could eventually run: Two tiny networks, a draft that is often rig
 
 Problem: The working set of K/V is larger than GPU memory but has locality: the newest tokens and the shared prefix are hotter than the middle of a long document.
 
-Core idea: Place cache pages on a ladder — on-device HBM, host RAM, local NVMe, remote store — and migrate them with prefetch / eviction, the way CPUs use L1/L2/L3. LMCache is one systems incarnation; others appear as "offloading" papers.
+Core idea: Place cache pages on a ladder - on-device HBM, host RAM, local NVMe, remote store - and migrate them with prefetch / eviction, the way CPUs use L1/L2/L3. LMCache is one systems incarnation; others appear as "offloading" papers.
 
 Why InferTab may care: Once the shelf exists, *where* the shelf lives becomes the story.
 

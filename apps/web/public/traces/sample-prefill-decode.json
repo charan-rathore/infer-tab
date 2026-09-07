@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.3.0",
+  "schemaVersion": "0.3.1",
   "experimentId": "02-prefill-vs-decode",
   "prompt": "the cat sat on the mat",
   "promptTokens": [
@@ -43,7 +43,8 @@
     "device": "cpu",
     "maxPos": 256,
     "promptLength": 6,
-    "decodeSteps": 1
+    "decodeSteps": 1,
+    "dHead": 8
   },
   "prefill": {
     "label": "Read what already exists.",
@@ -56,8 +57,10 @@
       6,
       6
     ],
-    "attentionScoreElementsPerHead": 36,
-    "attentionScoreElementsTotal": 72,
+    "attentionScoreCellsPerHead": 36,
+    "attentionScoreCellsCausal": 21,
+    "attentionScoreCellsMasked": 15,
+    "attentionScoreCellsTotal": 72,
     "shapes": {
       "X": [
         6,
@@ -78,11 +81,61 @@
       "scoresPerHead": [
         6,
         6
+      ],
+      "scoresAllHeads": [
+        2,
+        6,
+        6
       ]
     },
+    "attentionMath": {
+      "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+      "dHead": 8,
+      "scoreMultiply": {
+        "formula": "Q[P, d_h] x K^T[d_h, P] -> [P, P]",
+        "macScale": "P^2 x d_h",
+        "p": 6
+      },
+      "valueAggregate": {
+        "formula": "softmax(scores)[P, P] x V[P, d_h]",
+        "macScale": "P^2 x d_h"
+      }
+    },
+    "pipeline": [
+      {
+        "id": "x",
+        "label": "Everyone already here",
+        "tensor": "X [P, D]"
+      },
+      {
+        "id": "proj",
+        "label": "Ask, label, contribute",
+        "tensor": "Q, K, V [P, D]"
+      },
+      {
+        "id": "scores",
+        "label": "Every question meets every label",
+        "tensor": "QK\u1d40 \u2192 [H, P, P]"
+      },
+      {
+        "id": "mask",
+        "label": "No peeking ahead",
+        "tensor": "causal mask on the square"
+      },
+      {
+        "id": "mix",
+        "label": "Gather what we may see",
+        "tensor": "weighted V"
+      },
+      {
+        "id": "cache",
+        "label": "Keep labels and contents",
+        "tensor": "K/V shelf [P, D]"
+      }
+    ],
     "logicalKvBytesWritten": 768,
     "logicalKvBytesAvailable": 768,
-    "elapsedMs": 27.2731,
+    "elapsedMs": 28.5279,
     "generatedToken": {
       "id": 5,
       "text": "for",
@@ -138,8 +191,10 @@
       1,
       7
     ],
-    "attentionScoreElementsPerHead": 7,
-    "attentionScoreElementsTotal": 14,
+    "attentionScoreCellsPerHead": 7,
+    "attentionScoreCellsCausal": 7,
+    "attentionScoreCellsMasked": 0,
+    "attentionScoreCellsTotal": 14,
     "shapes": {
       "Q_new": [
         1,
@@ -164,11 +219,61 @@
       "scoresPerHead": [
         1,
         7
+      ],
+      "scoresAllHeads": [
+        2,
+        1,
+        7
       ]
     },
+    "attentionMath": {
+      "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+      "dHead": 8,
+      "scoreMultiply": {
+        "formula": "Q_new[1, d_h] x K_cache^T[d_h, T] -> [1, T]",
+        "macScale": "T x d_h",
+        "t": 7
+      },
+      "valueAggregate": {
+        "formula": "softmax(scores)[1, T] x V[T, d_h]",
+        "macScale": "T x d_h"
+      }
+    },
+    "pipeline": [
+      {
+        "id": "x",
+        "label": "Only the newest word",
+        "tensor": "x_new [1, D]"
+      },
+      {
+        "id": "proj",
+        "label": "One question, one new label",
+        "tensor": "q_new, k_new, v_new [1, D]"
+      },
+      {
+        "id": "append",
+        "label": "Add it to the shelf",
+        "tensor": "K/V cache [T, D]"
+      },
+      {
+        "id": "scores",
+        "label": "One question, long history",
+        "tensor": "q_new K\u1d40 \u2192 [H, 1, T]"
+      },
+      {
+        "id": "mix",
+        "label": "Gather from the shelf",
+        "tensor": "weighted V"
+      },
+      {
+        "id": "logits",
+        "label": "Guess the next word",
+        "tensor": "next-token logits"
+      }
+    ],
     "logicalKvBytesWritten": 128,
     "logicalKvBytesAvailable": 896,
-    "elapsedMs": 1.03,
+    "elapsedMs": 1.7278,
     "generatedToken": {
       "id": 12,
       "text": "sat",
@@ -185,7 +290,7 @@
     "maxAbsLogitDiff": 0.0,
     "tolerance": 1e-05
   },
-  "measurementDisclaimer": "This experiment compares tensor *shapes* and K/V row counts for prefill versus one decode step. Attention-score element counts show a P\u00d7P grid versus a 1\u00d7T row. logicalKvBytes is tokens \u00d7 d_model \u00d7 2 \u00d7 4 (float32 payload), not process RSS. elapsedMs is an educational laptop timer on a 16-dimensional toy. None of this proves that prefill is compute-bound or that decode is memory-bandwidth-bound on a GPU.",
+  "measurementDisclaimer": "P\u00b2 versus ~P here counts attention-score *cells per head*, not total Transformer compute. Q/K/V projections, the output projection, and any later FFN are separate. attentionScoreCellsCausal is the lower triangle P(P+1)/2; implementations may still materialize or skip the future differently, so this is a conceptual grid count, not hardware work. logicalKvBytes is tokens \u00d7 d_model \u00d7 2 \u00d7 4. elapsedMs is a laptop timer on a 16-d toy. None of this proves a GPU bottleneck.",
   "scaling": [
     {
       "promptLength": 6,
@@ -198,8 +303,10 @@
           6,
           6
         ],
-        "attentionScoreElementsPerHead": 36,
-        "attentionScoreElementsTotal": 72,
+        "attentionScoreCellsPerHead": 36,
+        "attentionScoreCellsCausal": 21,
+        "attentionScoreCellsMasked": 15,
+        "attentionScoreCellsTotal": 72,
         "shapes": {
           "X": [
             6,
@@ -220,11 +327,66 @@
           "scoresPerHead": [
             6,
             6
+          ],
+          "scoresAllHeads": [
+            2,
+            6,
+            6
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q[P, d_h] x K^T[d_h, P] -> [P, P]",
+            "macScale": "P^2 x d_h",
+            "p": 6
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[P, P] x V[P, d_h]",
+            "macScale": "P^2 x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Everyone already here",
+            "tensor": "X [P, D]"
+          },
+          {
+            "id": "proj",
+            "label": "Ask, label, contribute",
+            "tensor": "Q, K, V [P, D]"
+          },
+          {
+            "id": "scores",
+            "label": "Every question meets every label",
+            "tensor": "QK\u1d40 \u2192 [H, P, P]"
+          },
+          {
+            "id": "mask",
+            "label": "No peeking ahead",
+            "tensor": "causal mask on the square"
+          },
+          {
+            "id": "mix",
+            "label": "Gather what we may see",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "cache",
+            "label": "Keep labels and contents",
+            "tensor": "K/V shelf [P, D]"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          6,
+          6
+        ],
         "logicalKvBytesWritten": 768,
         "logicalKvBytesAvailable": 768,
-        "elapsedMs": 0.1748
+        "elapsedMs": 0.2842
       },
       "decode": {
         "inputTokenCount": 1,
@@ -235,8 +397,10 @@
           1,
           7
         ],
-        "attentionScoreElementsPerHead": 7,
-        "attentionScoreElementsTotal": 14,
+        "attentionScoreCellsPerHead": 7,
+        "attentionScoreCellsCausal": 7,
+        "attentionScoreCellsMasked": 0,
+        "attentionScoreCellsTotal": 14,
         "shapes": {
           "Q_new": [
             1,
@@ -261,11 +425,66 @@
           "scoresPerHead": [
             1,
             7
+          ],
+          "scoresAllHeads": [
+            2,
+            1,
+            7
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q_new[1, d_h] x K_cache^T[d_h, T] -> [1, T]",
+            "macScale": "T x d_h",
+            "t": 7
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[1, T] x V[T, d_h]",
+            "macScale": "T x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Only the newest word",
+            "tensor": "x_new [1, D]"
+          },
+          {
+            "id": "proj",
+            "label": "One question, one new label",
+            "tensor": "q_new, k_new, v_new [1, D]"
+          },
+          {
+            "id": "append",
+            "label": "Add it to the shelf",
+            "tensor": "K/V cache [T, D]"
+          },
+          {
+            "id": "scores",
+            "label": "One question, long history",
+            "tensor": "q_new K\u1d40 \u2192 [H, 1, T]"
+          },
+          {
+            "id": "mix",
+            "label": "Gather from the shelf",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "logits",
+            "label": "Guess the next word",
+            "tensor": "next-token logits"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          1,
+          7
+        ],
         "logicalKvBytesWritten": 128,
         "logicalKvBytesAvailable": 896,
-        "elapsedMs": 0.2233
+        "elapsedMs": 0.2577
       }
     },
     {
@@ -279,8 +498,10 @@
           16,
           16
         ],
-        "attentionScoreElementsPerHead": 256,
-        "attentionScoreElementsTotal": 512,
+        "attentionScoreCellsPerHead": 256,
+        "attentionScoreCellsCausal": 136,
+        "attentionScoreCellsMasked": 120,
+        "attentionScoreCellsTotal": 512,
         "shapes": {
           "X": [
             16,
@@ -301,11 +522,66 @@
           "scoresPerHead": [
             16,
             16
+          ],
+          "scoresAllHeads": [
+            2,
+            16,
+            16
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q[P, d_h] x K^T[d_h, P] -> [P, P]",
+            "macScale": "P^2 x d_h",
+            "p": 16
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[P, P] x V[P, d_h]",
+            "macScale": "P^2 x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Everyone already here",
+            "tensor": "X [P, D]"
+          },
+          {
+            "id": "proj",
+            "label": "Ask, label, contribute",
+            "tensor": "Q, K, V [P, D]"
+          },
+          {
+            "id": "scores",
+            "label": "Every question meets every label",
+            "tensor": "QK\u1d40 \u2192 [H, P, P]"
+          },
+          {
+            "id": "mask",
+            "label": "No peeking ahead",
+            "tensor": "causal mask on the square"
+          },
+          {
+            "id": "mix",
+            "label": "Gather what we may see",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "cache",
+            "label": "Keep labels and contents",
+            "tensor": "K/V shelf [P, D]"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          16,
+          16
+        ],
         "logicalKvBytesWritten": 2048,
         "logicalKvBytesAvailable": 2048,
-        "elapsedMs": 0.2242
+        "elapsedMs": 2.0082
       },
       "decode": {
         "inputTokenCount": 1,
@@ -316,8 +592,10 @@
           1,
           17
         ],
-        "attentionScoreElementsPerHead": 17,
-        "attentionScoreElementsTotal": 34,
+        "attentionScoreCellsPerHead": 17,
+        "attentionScoreCellsCausal": 17,
+        "attentionScoreCellsMasked": 0,
+        "attentionScoreCellsTotal": 34,
         "shapes": {
           "Q_new": [
             1,
@@ -342,11 +620,66 @@
           "scoresPerHead": [
             1,
             17
+          ],
+          "scoresAllHeads": [
+            2,
+            1,
+            17
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q_new[1, d_h] x K_cache^T[d_h, T] -> [1, T]",
+            "macScale": "T x d_h",
+            "t": 17
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[1, T] x V[T, d_h]",
+            "macScale": "T x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Only the newest word",
+            "tensor": "x_new [1, D]"
+          },
+          {
+            "id": "proj",
+            "label": "One question, one new label",
+            "tensor": "q_new, k_new, v_new [1, D]"
+          },
+          {
+            "id": "append",
+            "label": "Add it to the shelf",
+            "tensor": "K/V cache [T, D]"
+          },
+          {
+            "id": "scores",
+            "label": "One question, long history",
+            "tensor": "q_new K\u1d40 \u2192 [H, 1, T]"
+          },
+          {
+            "id": "mix",
+            "label": "Gather from the shelf",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "logits",
+            "label": "Guess the next word",
+            "tensor": "next-token logits"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          1,
+          17
+        ],
         "logicalKvBytesWritten": 128,
         "logicalKvBytesAvailable": 2176,
-        "elapsedMs": 0.1786
+        "elapsedMs": 0.6915
       }
     },
     {
@@ -360,8 +693,10 @@
           32,
           32
         ],
-        "attentionScoreElementsPerHead": 1024,
-        "attentionScoreElementsTotal": 2048,
+        "attentionScoreCellsPerHead": 1024,
+        "attentionScoreCellsCausal": 528,
+        "attentionScoreCellsMasked": 496,
+        "attentionScoreCellsTotal": 2048,
         "shapes": {
           "X": [
             32,
@@ -382,11 +717,66 @@
           "scoresPerHead": [
             32,
             32
+          ],
+          "scoresAllHeads": [
+            2,
+            32,
+            32
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q[P, d_h] x K^T[d_h, P] -> [P, P]",
+            "macScale": "P^2 x d_h",
+            "p": 32
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[P, P] x V[P, d_h]",
+            "macScale": "P^2 x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Everyone already here",
+            "tensor": "X [P, D]"
+          },
+          {
+            "id": "proj",
+            "label": "Ask, label, contribute",
+            "tensor": "Q, K, V [P, D]"
+          },
+          {
+            "id": "scores",
+            "label": "Every question meets every label",
+            "tensor": "QK\u1d40 \u2192 [H, P, P]"
+          },
+          {
+            "id": "mask",
+            "label": "No peeking ahead",
+            "tensor": "causal mask on the square"
+          },
+          {
+            "id": "mix",
+            "label": "Gather what we may see",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "cache",
+            "label": "Keep labels and contents",
+            "tensor": "K/V shelf [P, D]"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          32,
+          32
+        ],
         "logicalKvBytesWritten": 4096,
         "logicalKvBytesAvailable": 4096,
-        "elapsedMs": 0.2182
+        "elapsedMs": 0.3634
       },
       "decode": {
         "inputTokenCount": 1,
@@ -397,8 +787,10 @@
           1,
           33
         ],
-        "attentionScoreElementsPerHead": 33,
-        "attentionScoreElementsTotal": 66,
+        "attentionScoreCellsPerHead": 33,
+        "attentionScoreCellsCausal": 33,
+        "attentionScoreCellsMasked": 0,
+        "attentionScoreCellsTotal": 66,
         "shapes": {
           "Q_new": [
             1,
@@ -423,11 +815,66 @@
           "scoresPerHead": [
             1,
             33
+          ],
+          "scoresAllHeads": [
+            2,
+            1,
+            33
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q_new[1, d_h] x K_cache^T[d_h, T] -> [1, T]",
+            "macScale": "T x d_h",
+            "t": 33
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[1, T] x V[T, d_h]",
+            "macScale": "T x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Only the newest word",
+            "tensor": "x_new [1, D]"
+          },
+          {
+            "id": "proj",
+            "label": "One question, one new label",
+            "tensor": "q_new, k_new, v_new [1, D]"
+          },
+          {
+            "id": "append",
+            "label": "Add it to the shelf",
+            "tensor": "K/V cache [T, D]"
+          },
+          {
+            "id": "scores",
+            "label": "One question, long history",
+            "tensor": "q_new K\u1d40 \u2192 [H, 1, T]"
+          },
+          {
+            "id": "mix",
+            "label": "Gather from the shelf",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "logits",
+            "label": "Guess the next word",
+            "tensor": "next-token logits"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          1,
+          33
+        ],
         "logicalKvBytesWritten": 128,
         "logicalKvBytesAvailable": 4224,
-        "elapsedMs": 0.1679
+        "elapsedMs": 0.2465
       }
     },
     {
@@ -441,8 +888,10 @@
           64,
           64
         ],
-        "attentionScoreElementsPerHead": 4096,
-        "attentionScoreElementsTotal": 8192,
+        "attentionScoreCellsPerHead": 4096,
+        "attentionScoreCellsCausal": 2080,
+        "attentionScoreCellsMasked": 2016,
+        "attentionScoreCellsTotal": 8192,
         "shapes": {
           "X": [
             64,
@@ -463,11 +912,66 @@
           "scoresPerHead": [
             64,
             64
+          ],
+          "scoresAllHeads": [
+            2,
+            64,
+            64
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q[P, d_h] x K^T[d_h, P] -> [P, P]",
+            "macScale": "P^2 x d_h",
+            "p": 64
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[P, P] x V[P, d_h]",
+            "macScale": "P^2 x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Everyone already here",
+            "tensor": "X [P, D]"
+          },
+          {
+            "id": "proj",
+            "label": "Ask, label, contribute",
+            "tensor": "Q, K, V [P, D]"
+          },
+          {
+            "id": "scores",
+            "label": "Every question meets every label",
+            "tensor": "QK\u1d40 \u2192 [H, P, P]"
+          },
+          {
+            "id": "mask",
+            "label": "No peeking ahead",
+            "tensor": "causal mask on the square"
+          },
+          {
+            "id": "mix",
+            "label": "Gather what we may see",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "cache",
+            "label": "Keep labels and contents",
+            "tensor": "K/V shelf [P, D]"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          64,
+          64
+        ],
         "logicalKvBytesWritten": 8192,
         "logicalKvBytesAvailable": 8192,
-        "elapsedMs": 0.2711
+        "elapsedMs": 0.9136
       },
       "decode": {
         "inputTokenCount": 1,
@@ -478,8 +982,10 @@
           1,
           65
         ],
-        "attentionScoreElementsPerHead": 65,
-        "attentionScoreElementsTotal": 130,
+        "attentionScoreCellsPerHead": 65,
+        "attentionScoreCellsCausal": 65,
+        "attentionScoreCellsMasked": 0,
+        "attentionScoreCellsTotal": 130,
         "shapes": {
           "Q_new": [
             1,
@@ -504,11 +1010,66 @@
           "scoresPerHead": [
             1,
             65
+          ],
+          "scoresAllHeads": [
+            2,
+            1,
+            65
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q_new[1, d_h] x K_cache^T[d_h, T] -> [1, T]",
+            "macScale": "T x d_h",
+            "t": 65
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[1, T] x V[T, d_h]",
+            "macScale": "T x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Only the newest word",
+            "tensor": "x_new [1, D]"
+          },
+          {
+            "id": "proj",
+            "label": "One question, one new label",
+            "tensor": "q_new, k_new, v_new [1, D]"
+          },
+          {
+            "id": "append",
+            "label": "Add it to the shelf",
+            "tensor": "K/V cache [T, D]"
+          },
+          {
+            "id": "scores",
+            "label": "One question, long history",
+            "tensor": "q_new K\u1d40 \u2192 [H, 1, T]"
+          },
+          {
+            "id": "mix",
+            "label": "Gather from the shelf",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "logits",
+            "label": "Guess the next word",
+            "tensor": "next-token logits"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          1,
+          65
+        ],
         "logicalKvBytesWritten": 128,
         "logicalKvBytesAvailable": 8320,
-        "elapsedMs": 0.1766
+        "elapsedMs": 0.2655
       }
     },
     {
@@ -522,8 +1083,10 @@
           128,
           128
         ],
-        "attentionScoreElementsPerHead": 16384,
-        "attentionScoreElementsTotal": 32768,
+        "attentionScoreCellsPerHead": 16384,
+        "attentionScoreCellsCausal": 8256,
+        "attentionScoreCellsMasked": 8128,
+        "attentionScoreCellsTotal": 32768,
         "shapes": {
           "X": [
             128,
@@ -544,11 +1107,66 @@
           "scoresPerHead": [
             128,
             128
+          ],
+          "scoresAllHeads": [
+            2,
+            128,
+            128
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q[P, d_h] x K^T[d_h, P] -> [P, P]",
+            "macScale": "P^2 x d_h",
+            "p": 128
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[P, P] x V[P, d_h]",
+            "macScale": "P^2 x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Everyone already here",
+            "tensor": "X [P, D]"
+          },
+          {
+            "id": "proj",
+            "label": "Ask, label, contribute",
+            "tensor": "Q, K, V [P, D]"
+          },
+          {
+            "id": "scores",
+            "label": "Every question meets every label",
+            "tensor": "QK\u1d40 \u2192 [H, P, P]"
+          },
+          {
+            "id": "mask",
+            "label": "No peeking ahead",
+            "tensor": "causal mask on the square"
+          },
+          {
+            "id": "mix",
+            "label": "Gather what we may see",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "cache",
+            "label": "Keep labels and contents",
+            "tensor": "K/V shelf [P, D]"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          128,
+          128
+        ],
         "logicalKvBytesWritten": 16384,
         "logicalKvBytesAvailable": 16384,
-        "elapsedMs": 0.3655
+        "elapsedMs": 0.5146
       },
       "decode": {
         "inputTokenCount": 1,
@@ -559,8 +1177,10 @@
           1,
           129
         ],
-        "attentionScoreElementsPerHead": 129,
-        "attentionScoreElementsTotal": 258,
+        "attentionScoreCellsPerHead": 129,
+        "attentionScoreCellsCausal": 129,
+        "attentionScoreCellsMasked": 0,
+        "attentionScoreCellsTotal": 258,
         "shapes": {
           "Q_new": [
             1,
@@ -585,11 +1205,66 @@
           "scoresPerHead": [
             1,
             129
+          ],
+          "scoresAllHeads": [
+            2,
+            1,
+            129
           ]
         },
+        "attentionMath": {
+          "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+          "dHead": 8,
+          "scoreMultiply": {
+            "formula": "Q_new[1, d_h] x K_cache^T[d_h, T] -> [1, T]",
+            "macScale": "T x d_h",
+            "t": 129
+          },
+          "valueAggregate": {
+            "formula": "softmax(scores)[1, T] x V[T, d_h]",
+            "macScale": "T x d_h"
+          }
+        },
+        "pipeline": [
+          {
+            "id": "x",
+            "label": "Only the newest word",
+            "tensor": "x_new [1, D]"
+          },
+          {
+            "id": "proj",
+            "label": "One question, one new label",
+            "tensor": "q_new, k_new, v_new [1, D]"
+          },
+          {
+            "id": "append",
+            "label": "Add it to the shelf",
+            "tensor": "K/V cache [T, D]"
+          },
+          {
+            "id": "scores",
+            "label": "One question, long history",
+            "tensor": "q_new K\u1d40 \u2192 [H, 1, T]"
+          },
+          {
+            "id": "mix",
+            "label": "Gather from the shelf",
+            "tensor": "weighted V"
+          },
+          {
+            "id": "logits",
+            "label": "Guess the next word",
+            "tensor": "next-token logits"
+          }
+        ],
+        "scoreTensorShape": [
+          2,
+          1,
+          129
+        ],
         "logicalKvBytesWritten": 128,
         "logicalKvBytesAvailable": 16512,
-        "elapsedMs": 0.199
+        "elapsedMs": 0.2519
       }
     }
   ]

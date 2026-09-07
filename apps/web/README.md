@@ -3,7 +3,10 @@
 A small Next.js app that **only visualizes traces**.
 
 ```
-experiments/01-why-kv-cache  →  trace.json  →  this UI
+experiments/01-why-kv-cache            →  sample-why-kv-cache.json
+experiments/02-prefill-vs-decode       →  sample-prefill-decode.json
+experiments/03-arithmetic-vs-memory    →  sample-arithmetic-memory.json
+                                       →  this UI
 ```
 
 ```bash

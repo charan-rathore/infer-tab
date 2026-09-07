@@ -3,7 +3,7 @@
 Prefill: many query rows, all prompt tokens in one parallel pass, causal mask.
 Decode: one new query against a growing K/V history.
 
-We count rows, score-matrix cells, and logical K/V bytes — not FLOPs,
+We count rows, score-matrix cells, and logical K/V bytes - not FLOPs,
 bandwidth, or production latency.
 """
 
@@ -22,22 +22,24 @@ from tiny_lm import TinyCausalLM, build_vocab, encode, tokenize  # noqa: E402
 sys.path.remove(str(EXP01))
 
 EXPERIMENT_ID = "02-prefill-vs-decode"
-SCHEMA_VERSION = "0.3.0"
+SCHEMA_VERSION = "0.3.1"
 TOLERANCE = 1e-5
 BYTES_PER_FLOAT = 4
 D_MODEL = 16
 N_HEADS = 2
+D_HEAD = D_MODEL // N_HEADS
 MAX_POS = 256
 SCALING_LENGTHS = (6, 16, 32, 64, 128)
 WORD_CYCLE = ("the", "cat", "sat", "on", "the", "mat", "and", "saw", "a", "dog")
 
 MEASUREMENT_DISCLAIMER = (
-    "This experiment compares tensor *shapes* and K/V row counts for prefill "
-    "versus one decode step. Attention-score element counts show a P×P grid "
-    "versus a 1×T row. logicalKvBytes is tokens × d_model × 2 × 4 (float32 "
-    "payload), not process RSS. elapsedMs is an educational laptop timer on a "
-    "16-dimensional toy. None of this proves that prefill is compute-bound or "
-    "that decode is memory-bandwidth-bound on a GPU."
+    "P² versus ~P here counts attention-score *cells per head*, not total "
+    "Transformer compute. Q/K/V projections, the output projection, and any "
+    "later FFN are separate. attentionScoreCellsCausal is the lower triangle "
+    "P(P+1)/2; implementations may still materialize or skip the future "
+    "differently, so this is a conceptual grid count, not hardware work. "
+    "logicalKvBytes is tokens × d_model × 2 × 4. elapsedMs is a laptop timer "
+    "on a 16-d toy. None of this proves a GPU bottleneck."
 )
 
 
@@ -49,6 +51,83 @@ def prompt_of_length(n: int) -> str:
 
 def logical_kv_bytes(n_tokens: int, d_model: int = D_MODEL) -> int:
     return n_tokens * d_model * 2 * BYTES_PER_FLOAT
+
+
+def score_cell_counts(n_queries: int, n_keys: int, newest_query: bool) -> Dict[str, int]:
+    """Conceptual attention-grid counts for one head.
+
+    Prefill (n_queries == n_keys == P): a dense [P, P] board.
+    Causal usable cells are the lower triangle including the diagonal.
+    Decode with the newest query: every key is in the past or is self, so
+    no future cells exist.
+    """
+    total = n_queries * n_keys
+    if n_queries == n_keys:
+        causal = n_queries * (n_queries + 1) // 2
+        masked = n_queries * (n_queries - 1) // 2
+    elif newest_query:
+        causal = total
+        masked = 0
+    else:
+        raise ValueError("unsupported score-grid shape")
+    if causal + masked != total:
+        raise RuntimeError("mask counts must partition the grid")
+    return {
+        "attentionScoreCellsPerHead": total,
+        "attentionScoreCellsCausal": causal,
+        "attentionScoreCellsMasked": masked,
+        "attentionScoreCellsTotal": total * N_HEADS,
+    }
+
+
+def attention_math(kind: str, n_queries: int, n_keys: int) -> Dict[str, Any]:
+    """Dominant attention multiplies per head. Not a production FLOP recipe."""
+    if kind == "prefill":
+        return {
+            "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+            "dHead": D_HEAD,
+            "scoreMultiply": {
+                "formula": "Q[P, d_h] x K^T[d_h, P] -> [P, P]",
+                "macScale": "P^2 x d_h",
+                "p": n_queries,
+            },
+            "valueAggregate": {
+                "formula": "softmax(scores)[P, P] x V[P, d_h]",
+                "macScale": "P^2 x d_h",
+            },
+        }
+    return {
+        "countsWhat": "attention multiplies per head, not whole-model FLOPs",
+        "dHead": D_HEAD,
+        "scoreMultiply": {
+            "formula": "Q_new[1, d_h] x K_cache^T[d_h, T] -> [1, T]",
+            "macScale": "T x d_h",
+            "t": n_keys,
+        },
+        "valueAggregate": {
+            "formula": "softmax(scores)[1, T] x V[T, d_h]",
+            "macScale": "T x d_h",
+        },
+    }
+
+
+PREFILL_PIPELINE = (
+    {"id": "x", "label": "Everyone already here", "tensor": "X [P, D]"},
+    {"id": "proj", "label": "Ask, label, contribute", "tensor": "Q, K, V [P, D]"},
+    {"id": "scores", "label": "Every question meets every label", "tensor": "QKᵀ → [H, P, P]"},
+    {"id": "mask", "label": "No peeking ahead", "tensor": "causal mask on the square"},
+    {"id": "mix", "label": "Gather what we may see", "tensor": "weighted V"},
+    {"id": "cache", "label": "Keep labels and contents", "tensor": "K/V shelf [P, D]"},
+)
+
+DECODE_PIPELINE = (
+    {"id": "x", "label": "Only the newest word", "tensor": "x_new [1, D]"},
+    {"id": "proj", "label": "One question, one new label", "tensor": "q_new, k_new, v_new [1, D]"},
+    {"id": "append", "label": "Add it to the shelf", "tensor": "K/V cache [T, D]"},
+    {"id": "scores", "label": "One question, long history", "tensor": "q_new Kᵀ → [H, 1, T]"},
+    {"id": "mix", "label": "Gather from the shelf", "tensor": "weighted V"},
+    {"id": "logits", "label": "Guess the next word", "tensor": "next-token logits"},
+)
 
 
 def seed_model(vocab_size: int, seed: int) -> TinyCausalLM:
@@ -103,7 +182,7 @@ def run_prefill(
     elapsed = (time.perf_counter() - t0) * 1000.0
 
     per_head = [p, p]
-    cells = p * p
+    counts = score_cell_counts(p, p, newest_query=False)
     record = {
         "label": "Read what already exists.",
         "technicalName": "Prefill",
@@ -112,15 +191,17 @@ def run_prefill(
         "kRowsProjected": p,
         "vRowsProjected": p,
         "attentionScoreShapePerHead": per_head,
-        "attentionScoreElementsPerHead": cells,
-        "attentionScoreElementsTotal": cells * model.n_heads,
+        **counts,
         "shapes": {
             "X": [p, model.d_model],
             "Q": [p, model.d_model],
             "K": [p, model.d_model],
             "V": [p, model.d_model],
             "scoresPerHead": per_head,
+            "scoresAllHeads": [model.n_heads, p, p],
         },
+        "attentionMath": attention_math("prefill", p, p),
+        "pipeline": list(PREFILL_PIPELINE),
         "logicalKvBytesWritten": logical_kv_bytes(p, model.d_model),
         "logicalKvBytesAvailable": logical_kv_bytes(p, model.d_model),
         "elapsedMs": round(elapsed, 4),
@@ -160,7 +241,7 @@ def run_decode(
     elapsed = (time.perf_counter() - t0) * 1000.0
 
     per_head = [1, t]
-    cells = t
+    counts = score_cell_counts(1, t, newest_query=True)
     record = {
         "label": "Write one new piece.",
         "technicalName": "Decode",
@@ -170,8 +251,7 @@ def run_decode(
         "kRowsProjected": 1,
         "vRowsProjected": 1,
         "attentionScoreShapePerHead": per_head,
-        "attentionScoreElementsPerHead": cells,
-        "attentionScoreElementsTotal": cells * model.n_heads,
+        **counts,
         "shapes": {
             "Q_new": [1, model.d_model],
             "K_new": [1, model.d_model],
@@ -179,7 +259,10 @@ def run_decode(
             "K_cache": [t, model.d_model],
             "V_cache": [t, model.d_model],
             "scoresPerHead": per_head,
+            "scoresAllHeads": [model.n_heads, 1, t],
         },
+        "attentionMath": attention_math("decode", 1, t),
+        "pipeline": list(DECODE_PIPELINE),
         "logicalKvBytesWritten": logical_kv_bytes(1, model.d_model),
         "logicalKvBytesAvailable": logical_kv_bytes(t, model.d_model),
         "elapsedMs": round(elapsed, 4),
@@ -210,9 +293,14 @@ def _stage_summary(stage: Dict[str, Any]) -> Dict[str, Any]:
         "kRowsProjected",
         "vRowsProjected",
         "attentionScoreShapePerHead",
-        "attentionScoreElementsPerHead",
-        "attentionScoreElementsTotal",
+        "attentionScoreCellsPerHead",
+        "attentionScoreCellsCausal",
+        "attentionScoreCellsMasked",
+        "attentionScoreCellsTotal",
         "shapes",
+        "attentionMath",
+        "pipeline",
+        "scoreTensorShape",
         "logicalKvBytesWritten",
         "logicalKvBytesAvailable",
         "elapsedMs",
@@ -249,6 +337,7 @@ def run_pair(prompt_length: int, seed: int = 42) -> Dict[str, Any]:
             "maxPos": MAX_POS,
             "promptLength": prompt_length,
             "decodeSteps": 1,
+            "dHead": D_HEAD,
         },
         "prefill": prefill,
         "decode": decode,
