@@ -18,16 +18,16 @@ vocabulary is an analytics seam; there is no telemetry transport or analytics st
 
 ## Discovery contract
 
-| State | 01 Repeating work | 02 Read vs write | 03 Math vs data |
-| --- | --- | --- | --- |
-| First interaction | Build the first word | Inspect the first question | Count the single query's math |
-| Prediction | How many rows will the next step build? | May the first question read a later word? | Will smaller numbers reduce arithmetic, bytes, or both? |
-| Failure | Old positions are rebuilt | The attempted future read is blocked | A small arithmetic count still requires the long shelf |
-| Mechanism | Keep completed rows | Process existing prompt queries together, preserving the causal mask | Halve symbolic element width |
-| Aha | One new row, old rows reused, equivalent output | Many valid prompt queries, then one new query | Same arithmetic, half the logical payload |
-| Derivation | Sum actual observed projection counts | Recorded square, usable triangle, and row counts | Recorded arithmetic divided by recorded Q + K + V bytes |
-| Term | KV cache | Prefill and decode | Arithmetic intensity |
-| Next bottleneck | Reuse still reads the shelf | A single query still needs the whole shelf | Hardware throughput and actual traffic are needed to establish a bottleneck |
+| State             | 01 Repeating work                               | 02 Read vs write                                                     | 03 Math vs data                                                             |
+| ----------------- | ----------------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| First interaction | Build the first word                            | Inspect the first question                                           | Count the single query's math                                               |
+| Prediction        | How many rows will the next step build?         | May the first question read a later word?                            | Will smaller numbers reduce arithmetic, bytes, or both?                     |
+| Failure           | Old positions are rebuilt                       | The attempted future read is blocked                                 | A small arithmetic count still requires the long shelf                      |
+| Mechanism         | Keep completed rows                             | Process existing prompt queries together, preserving the causal mask | Halve symbolic element width                                                |
+| Aha               | One new row, old rows reused, equivalent output | Many valid prompt queries, then one new query                        | Same arithmetic, half the logical payload                                   |
+| Derivation        | Sum actual observed projection counts           | Recorded square, usable triangle, and row counts                     | Recorded arithmetic divided by recorded Q + K + V bytes                     |
+| Term              | KV cache                                        | Prefill and decode                                                   | Arithmetic intensity                                                        |
+| Next bottleneck   | Reuse still reads the shelf                     | A single query still needs the whole shelf                           | Hardware throughput and actual traffic are needed to establish a bottleneck |
 
 Experiment 02's blocked read is a causal constraint, not a defect corrected by
 parallelism. Parallel prompt processing retains that restriction; the serial view
@@ -79,8 +79,7 @@ decorative motion, fabricated hardware timing, or formulas that overwrite traces
   named `experiment`. The repository quality test also passes.
 - Type checking, all four committed trace checks, content checks, and the final
   production build pass. Existing Python mathematical logic was not changed.
-- Browser: the same selected position element remains mounted through 01 → 02 →
-  03. The second cached step shows six reused rows, one built row, and an emitted
+- Browser: the same selected position element remains mounted through 01 → 02 → 03. The second cached step shows six reused rows, one built row, and an emitted
   token that has not been stored. The next-query view shows one question against
   seven positions. The width change keeps 224 operations and changes 480 logical
   bytes to 240.
@@ -128,8 +127,7 @@ work/byte examples are explicitly labeled unit examples. Actual work, payloads,
 and intensity remain trace-derived, with contextual field references.
 
 Reduced motion supplies discrete origins and destinations in 01, the same keyed
-edges before and after compression in 02, and a before/after byte comparison in
-03. Colors supplement shapes, labels, and read rejection marks. Native controls
+edges before and after compression in 02, and a before/after byte comparison in 03. Colors supplement shapes, labels, and read rejection marks. Native controls
 and focus transfer to the consequence heading preserve keyboard progression.
 
 `integrity.ts` checks independent trace identities before rendering or import:
@@ -147,9 +145,10 @@ logical accounts. Establishing one requires measured traffic and machine through
 
 ## Current verification
 
-- All 56 web tests pass, including keyboard-only completion of all three journeys,
-  stale playback rejection, backward reconstruction, lossless replay, stable DOM
-  identity, causal rejection, bounded large-P rendering, and dtype continuity.
+- All 74 web tests pass, including keyboard-only completion of all three journeys,
+  adaptive policy divergence, bounded learner history, stale playback rejection,
+  backward reconstruction, lossless replay, stable DOM identity, causal rejection,
+  bounded large-P rendering, and dtype continuity.
 - All 96 Python experiment tests pass: 36 for 01, 35 for 02, and 25 for 03. The
   repository quality test also passes without changing Python experiment logic.
 - Trace, schema, arithmetic-memory, content, TypeScript, and lint checks pass. The
@@ -159,3 +158,58 @@ logical accounts. Establishing one requires measured traffic and machine through
   are at least 32 pixels high.
 - With reduced motion emulated, projection animation resolves to `none` while the
   labeled before and after states remain visible.
+- The production accessibility audit reports zero WCAG A and AA violations.
+
+## Adaptive teaching layer
+
+Adaptive teaching sits above the accepted trace and simulation stack:
+
+```text
+InferenceTruth -> ValidatedTrace -> SemanticSimulation
+                                     |             |
+                                ConceptGraph   LearnerModel
+                                     |             |
+                                     TeachingPolicy
+                                            |
+                               ExplanationStrategy
+                                            |
+                              existing visual projection
+```
+
+`lib/teaching/concepts.ts` is a fixed, typed curriculum graph rather than a graph
+database. Nodes and edges use stable IDs. Relationships distinguish prerequisite,
+cause, solution, bottleneck, contrast, derivation, analogy, misconception, and
+next question. Every relationship is labeled as recorded, derived, authored, or
+research supported. Locked serving concepts can be traversed but cannot acquire a
+current explanation strategy.
+
+The graph design borrows the useful small ideas from Graphify and JSON Canvas:
+typed relationships, stable local IDs, explicit provenance, deterministic traversal,
+and durable graph state. It does not add their dependencies or extraction systems.
+Serving-system edges are scoped by the JAX Scaling Book, vLLM prefix-cache design,
+SGLang RadixAttention documentation, and LMCache architecture documentation.
+
+`LearnerModel` is derived entirely from semantic replay events. It stores a bounded
+history and per-concept routing signals: mastery level, evidence count, explicit
+misconceptions, and last evidence ID. Mastery is an ordinal routing hint, not a
+calibrated probability. It can rise only after accepted evidence. Restarting one
+lesson removes that lesson's evidence and rebuilds the remaining model.
+
+`teachingDecision` uses ordered deterministic rules. Two identical evidence streams
+always select the same strategy. A second wrong KV prediction selects physical shelf
+manipulation. A correct prediction followed by proof inspection selects a compressed
+synchronized comparison. Other rules select a causal counterexample, dtype payload,
+unit analogy, or direct derivation for the relevant evidence. An explicit alternative
+request cycles through validated representations while the simulation state and trace
+references remain unchanged.
+
+`assistant.ts` is the only future model seam. A model may return a versioned concept,
+validated strategy ID, teaching move, and known misconception ID. It cannot return
+numbers, tensor dimensions, causal edges, cache values, or benchmark claims. Invalid,
+unknown, or unavailable output returns the deterministic policy decision exactly.
+
+Adaptive events remain part of the same replay contract. Replay reconstructs learner
+and simulation state together by reducing the ordered event list. A route preserves
+concept knowledge. A custom Experiment 01 recording starts a fresh discovery and
+learner model because the prior evidence belonged to a different source run.
+Mathematical values still follow trace to derivation to visual output.

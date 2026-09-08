@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMachine } from "./MachineProvider";
 import { MachineBoard, AttentionBoard, PayloadBoard } from "./MachineBoard";
+import { AdaptiveGuide } from "./AdaptiveGuide";
 import { JOURNEY } from "@/lib/simulation/journey";
 import {
   projectedWork,
@@ -32,6 +33,7 @@ import {
   MAX_EVENTS,
 } from "@/lib/simulation/replay";
 import { assertValidTrace } from "@/lib/schema";
+import { teachingDecision } from "@/lib/teaching/policy";
 
 const PATHS: Record<Lesson, string> = {
   "01": "/",
@@ -79,6 +81,9 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
   const canReuse = traces.kv.modes.cached.steps.some(
     (item) => item.kvRowsReused > 0,
   );
+  const teaching = teachingDecision(lesson, state.learner);
+  const adaptiveCompare =
+    state.compare || teaching.strategy === "synchronized-comparison";
 
   /** Download an explicit, portable replay; the file includes the prompt and recordings the user chose. */
   function downloadReplay() {
@@ -315,6 +320,8 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
         )}
       </article>
 
+      <AdaptiveGuide lesson={lesson} decision={teaching} />
+
       {lesson !== "01" && (
         <p className="source-note">
           {state.promptLength === traces.prefill.config.promptLength
@@ -328,10 +335,10 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
         </p>
       )}
 
-      <MachineBoard lesson={lesson} />
+      <MachineBoard lesson={lesson} strategy={teaching.strategy} />
       {lesson === "01" && reached(discovery, "failure") && <Timeline />}
-      {lesson === "02" && <AttentionBoard />}
-      {lesson === "03" && <PayloadBoard />}
+      {lesson === "02" && <AttentionBoard strategy={teaching.strategy} />}
+      {lesson === "03" && <PayloadBoard strategy={teaching.strategy} />}
       {lesson === "01" && step && (
         <p className="live-count" role="status">
           Step {state.playhead + 1} of {traces.kv.modes.naive.steps.length}.
@@ -368,12 +375,22 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
               </div>
               <button
                 type="button"
-                aria-pressed={state.compare}
-                onClick={() =>
-                  send({ type: "compare.selected", enabled: !state.compare })
-                }
+                aria-pressed={adaptiveCompare}
+                onClick={() => {
+                  if (adaptiveCompare && !state.compare)
+                    send({
+                      type: "teaching.alternative.requested",
+                      lesson: "01",
+                      concept: "kv-cache",
+                    });
+                  else
+                    send({
+                      type: "compare.selected",
+                      enabled: !state.compare,
+                    });
+                }}
               >
-                {state.compare
+                {adaptiveCompare
                   ? "Show one execution"
                   : "Compare both executions"}
               </button>

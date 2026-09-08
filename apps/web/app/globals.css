@@ -60,6 +60,107 @@
   border: 0;
   padding: 0;
 }
+.adaptive-guide {
+  display: grid;
+  grid-template-columns: minmax(165px, 0.35fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 18px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.adaptive-route {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.adaptive-route span,
+.adaptive-route small {
+  color: var(--ink-soft);
+  font:
+    0.68rem ui-monospace,
+    monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.adaptive-route strong {
+  font-size: 0.92rem;
+}
+.adaptive-route:focus {
+  outline: 2px solid var(--memory);
+  outline-offset: 4px;
+}
+.adaptive-guide > p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.adaptive-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.adaptive-actions button {
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 0.8rem;
+}
+.model-check {
+  grid-column: 1 / -1;
+  padding-top: 8px;
+}
+.model-check fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+}
+.model-check legend {
+  width: 100%;
+  margin-bottom: 5px;
+  font-weight: 650;
+}
+.model-check button {
+  min-height: 40px;
+  font-size: 0.84rem;
+}
+.strategy-focus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 14px;
+  padding: 10px 12px;
+  background: var(--memory-soft);
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+.strategy-focus strong {
+  white-space: nowrap;
+}
+.timeline-focus {
+  justify-content: flex-start;
+  overflow: hidden;
+}
+.timeline-focus span {
+  padding: 5px 7px;
+  border-bottom: 2px solid var(--memory);
+  white-space: nowrap;
+}
+.timeline-focus span[data-present="false"] {
+  border-bottom-style: dashed;
+  color: var(--rebuild);
+}
+.unit-focus {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: ui-monospace, monospace;
+}
 .execution-lanes {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1127,6 +1228,19 @@ summary {
 @media (max-width: 600px) {
   .page > header h1 {
     font-size: 1.35rem;
+  }
+  .adaptive-guide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adaptive-actions {
+    justify-content: flex-start;
+  }
+  .model-check {
+    grid-column: 1;
+  }
+  .strategy-focus {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .page > header .lede {
     display: none;

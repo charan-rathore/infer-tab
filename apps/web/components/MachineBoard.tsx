@@ -12,9 +12,16 @@ import {
 import { reached, sharedLengths, type Lesson } from "@/lib/simulation/model";
 import type { TraceToken } from "@/lib/schema";
 import { KvRoute, CompareLane, WorkLedger } from "./KvVisual";
+import type { ExplanationStrategyId } from "@/lib/teaching/concepts";
 
 /** Project stable token-position objects into the workbench and shelf without remounting on policy changes. */
-export function MachineBoard({ lesson }: { lesson: Lesson }) {
+export function MachineBoard({
+  lesson,
+  strategy,
+}: {
+  lesson: Lesson;
+  strategy: ExplanationStrategyId;
+}) {
   const { state, traces, send } = useMachine();
   const step = traces.kv.modes[state.policy].steps[state.playhead];
   const events = traceEvents(traces.kv, state.policy, state.playhead);
@@ -62,12 +69,19 @@ export function MachineBoard({ lesson }: { lesson: Lesson }) {
       (item) => item.position === state.selectedPosition,
     );
   const maximum = 24;
+  const compare =
+    lesson === "01" &&
+    (state.compare || strategy === "synchronized-comparison");
   // Keep a selected offscreen position inspectable while bounding large scenario rendering.
   const visible = tokens.slice(0, maximum);
   if (selected && !visible.includes(selected)) visible.push(selected);
 
   return (
-    <section className="machine" aria-label="Persistent inference machine">
+    <section
+      className="machine"
+      aria-label="Persistent inference machine"
+      data-teaching-strategy={strategy}
+    >
       <div className="machine-header">
         <strong>
           {lesson === "01"
@@ -75,14 +89,9 @@ export function MachineBoard({ lesson }: { lesson: Lesson }) {
             : "Same positions. A different question."}
         </strong>
       </div>
-      <div
-        className={
-          "execution-lanes " +
-          (lesson === "01" && state.compare ? "comparing" : "")
-        }
-      >
+      <div className={"execution-lanes " + (compare ? "comparing" : "")}>
         <div className="primary-lane" data-policy={state.policy}>
-          {lesson === "01" && state.compare && (
+          {compare && (
             <h3>
               {state.policy === "cached"
                 ? "Keep finished work"
@@ -204,16 +213,49 @@ export function MachineBoard({ lesson }: { lesson: Lesson }) {
               );
             })}
           </div>
-          {lesson === "01" && state.playhead >= 0 && (
-            <WorkLedger
-              trace={traces.kv}
-              policy={state.policy}
-              playhead={state.playhead}
-            />
-          )}
+          {lesson === "01" &&
+            state.playhead >= 0 &&
+            (strategy === "work-receipts" || compare) && (
+              <WorkLedger
+                trace={traces.kv}
+                policy={state.policy}
+                playhead={state.playhead}
+              />
+            )}
         </div>
-        {lesson === "01" && state.compare && <CompareLane />}
+        {compare && <CompareLane />}
       </div>
+      {lesson === "01" &&
+        strategy === "physical-shelf" &&
+        reached(discovery, "failure") && (
+          <div
+            className="strategy-focus shelf-focus"
+            aria-label="Physical shelf explanation"
+          >
+            <strong>Touch the mechanism, then step once.</strong>
+            <span>
+              {state.policy === "cached"
+                ? `${step?.kvRowsReused ?? 0} old finished pairs remain on the shelf. ${step?.kvRowsProjected ?? 0} new pair crosses compute.`
+                : `${step?.kvRowsProjected ?? 0} finished pairs cross compute again. The shelf is empty.`}
+            </span>
+          </div>
+        )}
+      {lesson === "01" &&
+        strategy === "causal-invariant" &&
+        reached(discovery, "aha") && (
+          <div
+            className="strategy-focus invariant-focus"
+            aria-label="Causal invariant evidence"
+          >
+            <strong>Past positions are future-invariant.</strong>
+            <span>
+              Recorded outputs match:{" "}
+              {String(traces.kv.equivalence.outputsMatch)}. Maximum raw-score
+              difference {traces.kv.equivalence.maxAbsLogitDiff}, tolerance{" "}
+              {traces.kv.equivalence.tolerance}.
+            </span>
+          </div>
+        )}
       {tokens.length > maximum && (
         <p>
           {tokens.length - maximum} additional positions summarized. Counts
@@ -278,7 +320,11 @@ export function MachineBoard({ lesson }: { lesson: Lesson }) {
 }
 
 /** Transform persistent dependency edges into a compact grid; inspection can never grant a forbidden read. */
-export function AttentionBoard() {
+export function AttentionBoard({
+  strategy,
+}: {
+  strategy: ExplanationStrategyId;
+}) {
   const { state, traces, send } = useMachine();
   const pair = stagePair(traces, state.promptLength);
   const introduced = reached(state.lessons["02"], "aha");
@@ -310,6 +356,7 @@ export function AttentionBoard() {
     <section
       className="attention-view"
       aria-label="Questions and permitted reads"
+      data-teaching-strategy={strategy}
     >
       <h3>
         {job === "prefill"
@@ -484,6 +531,30 @@ export function AttentionBoard() {
             : `Question ${query} can read position ${inspected}.`}
         </p>
       )}
+      {strategy === "timeline-viewpoint" && (
+        <div
+          className="strategy-focus timeline-focus"
+          aria-label="Position timeline"
+        >
+          {Array.from({ length: Math.min(query + 2, n) }, (_, position) => (
+            <span key={position} data-present={position <= query}>
+              {position <= query ? `seen ${position}` : `future ${position}`}
+            </span>
+          ))}
+        </div>
+      )}
+      {strategy === "tensor-shape-derivation" && introduced && (
+        <div
+          className="strategy-focus shape-focus"
+          aria-label="Trace-derived tensor shape"
+        >
+          <strong>{job === "prefill" ? "[P, P]" : "[1, T]"}</strong>
+          <span>
+            [{rows}, {columns}] from {rows} question row{rows === 1 ? "" : "s"}{" "}
+            and {columns} available key positions.
+          </span>
+        </div>
+      )}
       {large && (
         <p>
           Area includes every position. Buttons inspect the first {n}; the
@@ -510,7 +581,11 @@ export function AttentionBoard() {
 }
 
 /** Keep symbolic arithmetic mounted while recorded dtype size changes the physical payload beneath it. */
-export function PayloadBoard() {
+export function PayloadBoard({
+  strategy,
+}: {
+  strategy: ExplanationStrategyId;
+}) {
   const { state, traces } = useMachine();
   const discovery = state.lessons["03"];
   const active = arithmeticAccount(traces, {
@@ -532,7 +607,20 @@ export function PayloadBoard() {
     <section
       className="payload-view"
       aria-label="Arithmetic and logical payload"
+      data-teaching-strategy={strategy}
     >
+      {strategy === "unit-analogy" && (
+        <div
+          className="strategy-focus unit-focus"
+          aria-label="Per-unit analogy"
+        >
+          <span>100 km ÷ 2 hours = 50 km per hour</span>
+          <span>
+            {active.flops} FLOPs ÷ {active.bytes} bytes ={" "}
+            {Number(active.intensity.toFixed(3))} FLOPs per byte
+          </span>
+        </div>
+      )}
       <div className="symbolic-work">
         <h3>One piece of the calculation</h3>
         <div

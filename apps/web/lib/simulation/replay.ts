@@ -11,6 +11,37 @@ import {
   type SimulationEvent,
   type TraceBundle,
 } from "./model";
+import { CONCEPT_NODES } from "@/lib/teaching/concepts";
+
+const TRANSFER_QUESTIONS = [
+  "kv-purpose",
+  "causal-future",
+  "float16-flops",
+  "flop-rate",
+  "bits-byte",
+  "less-math-data",
+] as const;
+const LESSON_CONCEPT = {
+  "01": "kv-cache",
+  "02": "causal-dependency",
+  "03": "arithmetic-intensity",
+} as const;
+const TRANSFER_LESSON = {
+  "kv-purpose": "01",
+  "causal-future": "02",
+  "float16-flops": "03",
+  "flop-rate": "03",
+  "bits-byte": "03",
+  "less-math-data": "03",
+} as const;
+
+/** Validate a public concept ID without accepting misconception or unknown graph nodes. */
+function isConcept(value: unknown): boolean {
+  return (
+    typeof value === "string" &&
+    CONCEPT_NODES.some((node) => node.kind === "concept" && node.id === value)
+  );
+}
 
 export const MAX_REPLAY_BYTES = 2_000_000;
 export const MAX_EVENTS = 4096;
@@ -44,6 +75,30 @@ function isEvent(value: unknown): value is SimulationEvent {
         ["one", "all", "yes", "no", "math", "bytes", "both"].includes(
           event.answer,
         )
+      );
+    case "prediction.revisited":
+      return (
+        lesson &&
+        event.lesson === "01" &&
+        ["one", "all"].includes(String(event.answer))
+      );
+    case "teaching.alternative.requested":
+    case "learner.prior.declared":
+      return (
+        lesson &&
+        isConcept(event.concept) &&
+        LESSON_CONCEPT[event.lesson as Lesson] === event.concept
+      );
+    case "transfer.answered":
+      return (
+        lesson &&
+        TRANSFER_QUESTIONS.includes(
+          event.question as (typeof TRANSFER_QUESTIONS)[number],
+        ) &&
+        TRANSFER_LESSON[
+          event.question as (typeof TRANSFER_QUESTIONS)[number]
+        ] === event.lesson &&
+        typeof event.correct === "boolean"
       );
     case "timeline.sought":
       return (

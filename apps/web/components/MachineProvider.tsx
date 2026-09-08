@@ -19,6 +19,7 @@ import {
 import { MAX_EVENTS, replayState, type Replay } from "@/lib/simulation/replay";
 import { validateBundle } from "@/lib/simulation/adapters";
 import type { InferTabTrace } from "@/lib/schema";
+import { validateConceptGraph } from "@/lib/teaching/concepts";
 
 interface Session {
   traces: TraceBundle;
@@ -106,6 +107,7 @@ export function MachineProvider({
 /** Build and validate the initial session once, keeping all React initialization deterministic. */
 function createSession(traces: TraceBundle): Session {
   validateBundle(traces);
+  validateConceptGraph();
   return {
     traces,
     state: initialState(traces),

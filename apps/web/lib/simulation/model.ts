@@ -3,6 +3,15 @@ import type {
   PrefillDecodeTrace,
   ArithmeticMemoryTrace,
 } from "@/lib/schema";
+import {
+  applyLearnerEvidence,
+  evidenceFromSimulationEvent,
+  initialLearnerModel,
+  resetLearnerLesson,
+  type LearnerModel,
+  type TransferQuestionId,
+} from "@/lib/teaching/learner";
+import type { ConceptId } from "@/lib/teaching/concepts";
 
 export type Lesson = "01" | "02" | "03";
 export type Depth = "learn" | "inspect" | "prove";
@@ -41,11 +50,25 @@ export interface MachineState {
   query: number;
   inspectedKey: number | null;
   representation: "connections" | "grid";
+  learner: LearnerModel;
 }
 export type SimulationEvent =
   | { type: "lesson.entered"; lesson: Lesson }
   | { type: "interaction.started"; lesson: Lesson }
   | { type: "prediction.committed"; lesson: Lesson; answer: Prediction }
+  | { type: "prediction.revisited"; lesson: "01"; answer: "one" | "all" }
+  | {
+      type: "teaching.alternative.requested";
+      lesson: Lesson;
+      concept: ConceptId;
+    }
+  | { type: "learner.prior.declared"; lesson: Lesson; concept: ConceptId }
+  | {
+      type: "transfer.answered";
+      lesson: Lesson;
+      question: TransferQuestionId;
+      correct: boolean;
+    }
   | { type: "mechanism.changed"; lesson: Lesson }
   | {
       type:
@@ -107,6 +130,7 @@ export function initialState(bundle: TraceBundle): MachineState {
     query: 0,
     inspectedKey: null,
     representation: "connections",
+    learner: initialLearnerModel(),
   };
 }
 
@@ -133,7 +157,7 @@ export function reached(discovery: Discovery, milestone: Milestone): boolean {
 }
 
 /** Apply a semantic learner action, guarding required predictions and clamping recorded timeline bounds. */
-export function reduceMachine(
+function reduceSimulationState(
   state: MachineState,
   event: SimulationEvent,
   bundle: TraceBundle,
@@ -227,7 +251,7 @@ export function reduceMachine(
         patch = {
           policy: "cached",
           playhead: Math.max(1, state.playhead),
-          compare: true,
+          compare: false,
           playing: false,
           playbackEpoch: state.playbackEpoch + 1,
         };
@@ -345,4 +369,25 @@ export function reduceMachine(
           }
         : state;
   }
+}
+
+/** Apply deterministic simulation truth first, then attach evidence-derived teaching state above it. */
+export function reduceMachine(
+  state: MachineState,
+  event: SimulationEvent,
+  bundle: TraceBundle,
+): MachineState {
+  const simulated = reduceSimulationState(state, event, bundle);
+  if (event.type === "lesson.reset")
+    return {
+      ...simulated,
+      learner: resetLearnerLesson(state.learner, event.lesson),
+    };
+  const evidence = evidenceFromSimulationEvent(state, simulated, event);
+  return evidence
+    ? {
+        ...simulated,
+        learner: applyLearnerEvidence(state.learner, evidence),
+      }
+    : simulated;
 }

@@ -1,0 +1,72 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: experiments/01-why-kv-cache/requirements.txt
+
+      - name: Install Python test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install pytest
+
+      - name: Test Experiment 01
+        working-directory: experiments/01-why-kv-cache
+        run: python -m pytest -q
+
+      - name: Test Experiment 02
+        working-directory: experiments/02-prefill-vs-decode
+        run: python -m pytest -q
+
+      - name: Test Experiment 03
+        working-directory: experiments/03-arithmetic-vs-memory
+        run: python -m pytest -q
+
+      - name: Check repository quality
+        run: python -m pytest -q tests
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Test web behavior
+        working-directory: apps/web
+        run: npm test -- --maxWorkers=1
+
+      - name: Validate traces and content
+        working-directory: apps/web
+        run: npm run check-trace
+
+      - name: Typecheck
+        working-directory: apps/web
+        run: npm run typecheck
+
+      - name: Lint
+        working-directory: apps/web
+        run: npm run lint
+
+      - name: Build production app
+        working-directory: apps/web
+        run: npm run build
