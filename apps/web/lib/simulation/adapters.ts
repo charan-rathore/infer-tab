@@ -4,6 +4,7 @@ import type {
   TraceToken,
 } from "@/lib/schema";
 import type { MachineState, TraceBundle } from "./model";
+import { validateTraceFacts } from "./integrity";
 
 export interface Quantity {
   value: number;
@@ -307,4 +308,5 @@ export function validateBundle(bundle: TraceBundle): void {
         "Dtype recording does not support the stated width comparison.",
       );
   }
+  validateTraceFacts(bundle);
 }

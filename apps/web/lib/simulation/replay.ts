@@ -25,8 +25,11 @@ export interface Replay {
 function isEvent(value: unknown): value is SimulationEvent {
   if (!value || typeof value !== "object") return false;
   const event = value as Record<string, unknown>;
-  const lesson = ["01", "02", "03"].includes(String(event.lesson));
+  const lesson =
+    typeof event.lesson === "string" &&
+    ["01", "02", "03"].includes(event.lesson);
   switch (event.type) {
+    case "lesson.entered":
     case "interaction.started":
     case "mechanism.changed":
     case "derivation.revealed":
@@ -37,8 +40,9 @@ function isEvent(value: unknown): value is SimulationEvent {
     case "prediction.committed":
       return (
         lesson &&
+        typeof event.answer === "string" &&
         ["one", "all", "yes", "no", "math", "bytes", "both"].includes(
-          String(event.answer),
+          event.answer,
         )
       );
     case "timeline.sought":
@@ -53,7 +57,41 @@ function isEvent(value: unknown): value is SimulationEvent {
           Number(event.position) <= 512)
       );
     case "depth.selected":
-      return ["learn", "inspect", "prove"].includes(String(event.depth));
+      return (
+        typeof event.depth === "string" &&
+        ["learn", "inspect", "prove"].includes(event.depth)
+      );
+    case "timeline.play":
+    case "timeline.pause":
+    case "timeline.replay":
+      return true;
+    case "timeline.tick":
+      return (
+        Number.isInteger(event.epoch) &&
+        Number(event.epoch) >= 0 &&
+        Number.isInteger(event.fromStep) &&
+        Number(event.fromStep) >= 0 &&
+        Number(event.fromStep) < 128
+      );
+    case "compare.selected":
+      return typeof event.enabled === "boolean";
+    case "query.selected":
+      return (
+        Number.isInteger(event.position) &&
+        Number(event.position) >= 0 &&
+        Number(event.position) < 256
+      );
+    case "edge.inspected":
+      return (
+        Number.isInteger(event.key) &&
+        Number(event.key) >= 0 &&
+        Number(event.key) < 257
+      );
+    case "representation.selected":
+      return (
+        event.representation === "connections" ||
+        event.representation === "grid"
+      );
     case "policy.selected":
       return event.policy === "naive" || event.policy === "cached";
     case "job.selected":

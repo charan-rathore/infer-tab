@@ -25,7 +25,10 @@ The three routes now select lenses of one mounted machine in `app/layout.tsx`.
 shared discovery flow; `MachineBoard` projects stable position objects. The small
 modules under `lib/simulation/` own trace adapters, semantic events, derivation
 references, and versioned replay validation. Every new function has a responsibility
-comment. There are no playback timers or animation-completion dependencies.
+comment. One shared playback controller schedules guarded step intents. It never
+computes inference facts, and no animation-completion handler changes state.
+Each tick includes its playback epoch and source step; cancelled or duplicate
+callbacks cannot advance a newer session or double count work.
 
 The default third lens uses `journey-arithmetic-memory.json`, a six-token recording
 from the unchanged Experiment 03 `run_experiment(6)`. The original eight-token
@@ -38,5 +41,7 @@ replay. A replay carries the traces, prompt, and ordered learner actions. Naviga
 preserves progress; a reload starts fresh unless a replay is opened. Custom 01
 prompts do not relabel the independently recorded 02/03 scenarios.
 
-Validation: `npm run typecheck`, `npm test`, `npm run check-trace`, `npm run build`.
+Validation: `npm run typecheck`, `npm test`, `npm run check-trace`, `npm run lint`,
+`npm run build`. On a busy laptop, `npm test -- --maxWorkers=1` limits concurrent
+test processes without changing assertions or timeouts.
 See [the architecture and discovery contract](../../docs/inference/product-system.md).

@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useReducer, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+  type ReactNode,
+} from "react";
+import { schedulePlayback } from "@/lib/simulation/playback";
 import {
   initialState,
   reduceMachine,
@@ -66,9 +74,18 @@ export function MachineProvider({
 }) {
   const [session, dispatch] = useReducer(sessionReducer, traces, createSession);
   /** Record a user action; rendering and animation never dispatch mathematical results. */
-  function send(event: SimulationEvent) {
+  const send = useCallback(function send(event: SimulationEvent) {
     dispatch({ type: "event", event });
-  }
+  }, []);
+  // Only this shared controller requests timed steps. Renderers have no playback clocks.
+  useEffect(
+    () =>
+      schedulePlayback(session.state, send, {
+        schedule: (callback, delay) => window.setTimeout(callback, delay),
+        cancel: (handle) => window.clearTimeout(handle as number),
+      }),
+    [session.state, send],
+  );
   /** Replace the machine with a replay that has already passed version and trace validation. */
   function restore(replay: Replay) {
     dispatch({ type: "load", replay });

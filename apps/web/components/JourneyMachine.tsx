@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import { Timeline } from "./KvVisual";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMachine } from "./MachineProvider";
@@ -40,6 +47,18 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
   const copy = JOURNEY[lesson];
   const stage = discovery.milestone;
   const hasAha = reached(discovery, "aha");
+  const heading = useRef<HTMLHeadingElement>(null);
+  const previousStage = useRef(stage);
+  // Route entry preserves only selections meaningful in the destination's recorded sequence.
+  useEffect(() => {
+    send({ type: "lesson.entered", lesson });
+  }, [lesson, send]);
+  // Focus follows a removed action button to its consequence. This effect never changes simulation facts.
+  useEffect(() => {
+    if (previousStage.current !== stage)
+      heading.current?.focus({ preventScroll: true });
+    previousStage.current = stage;
+  }, [stage]);
   const [notice, setNotice] = useState("");
   const router = useRouter();
   const rebuild = projectedWork(traces.kv, "naive", state.playhead);
@@ -119,28 +138,33 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
       data-lesson={lesson}
       data-milestone={stage}
     >
-      <div className="depth" role="group" aria-label="Learning depth">
-        {(["learn", "inspect", "prove"] as const).map((depth) => (
-          <button
-            type="button"
-            key={depth}
-            aria-pressed={state.depth === depth}
-            className={state.depth === depth ? "on" : ""}
-            onClick={() => send({ type: "depth.selected", depth })}
-          >
-            {depth === "learn"
-              ? "Learn"
-              : depth === "inspect"
-                ? "Inspect"
-                : "Prove"}
-          </button>
-        ))}
-      </div>
+      <details className="curiosity-depth">
+        <summary>Explore the evidence</summary>
+        <div className="depth" role="group" aria-label="Learning depth">
+          {(["learn", "inspect", "prove"] as const).map((depth) => (
+            <button
+              type="button"
+              key={depth}
+              aria-pressed={state.depth === depth}
+              className={state.depth === depth ? "on" : ""}
+              onClick={() => send({ type: "depth.selected", depth })}
+            >
+              {depth === "learn"
+                ? "Learn"
+                : depth === "inspect"
+                  ? "Inspect"
+                  : "Prove"}
+            </button>
+          ))}
+        </div>
+      </details>
       <article className="lesson discovery" aria-label="Current discovery">
         <p className="eyebrow">
           Observation {MILESTONES.indexOf(stage) + 1} of {MILESTONES.length}
         </p>
-        <h2>{copy.title}</h2>
+        <h2 ref={heading} tabIndex={-1}>
+          {copy.title}
+        </h2>
         {stage === "problem" && (
           <>
             <p>{copy.problem}</p>
@@ -189,8 +213,6 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
               {lesson === "01" && (
                 <p>
                   The next step built <b>{naiveStep?.kvRowsProjected} rows</b>.
-                  Positions already used came back to the bench. The machine
-                  kept none of their finished work.
                 </p>
               )}
               {lesson === "02" && (
@@ -219,13 +241,16 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
                     <b>{cachedStep?.kvRowsProjected ?? 0}</b> and reuses{" "}
                     <b>{cachedStep?.kvRowsReused ?? 0}</b>.
                   </p>
-                  <p>
-                    {traces.kv.equivalence.outputsMatch &&
-                    traces.kv.equivalence.maxAbsLogitDiff <=
-                      traces.kv.equivalence.tolerance
-                      ? "The recorded output tokens match, and the raw score difference is within tolerance."
-                      : "The recording does not establish equivalent outputs. Inspect the numerical evidence before drawing a conclusion."}
-                  </p>
+                  <details>
+                    <summary>How do we know the output is unchanged?</summary>
+                    <p>
+                      {traces.kv.equivalence.outputsMatch &&
+                      traces.kv.equivalence.maxAbsLogitDiff <=
+                        traces.kv.equivalence.tolerance
+                        ? "The recorded output tokens match, and the raw score difference is within tolerance."
+                        : "The recording does not establish equivalent outputs. Inspect the numerical evidence before drawing a conclusion."}
+                    </p>
+                  </details>
                 </>
               )}
               {lesson === "02" && (
@@ -304,6 +329,7 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
       )}
 
       <MachineBoard lesson={lesson} />
+      {lesson === "01" && reached(discovery, "failure") && <Timeline />}
       {lesson === "02" && <AttentionBoard />}
       {lesson === "03" && <PayloadBoard />}
       {lesson === "01" && step && (
@@ -340,48 +366,25 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
                   </button>
                 ))}
               </div>
-              <label className="timeline">
-                Observed step{" "}
-                <input
-                  type="range"
-                  min={0}
-                  max={traces.kv.modes.naive.steps.length - 1}
-                  value={Math.max(0, state.playhead)}
-                  onChange={(event) =>
-                    send({
-                      type: "timeline.sought",
-                      step: Number(event.target.value),
-                    })
-                  }
-                />
-              </label>
-              <div className="controls">
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={state.playhead <= 0}
-                  onClick={() =>
-                    send({ type: "timeline.sought", step: state.playhead - 1 })
-                  }
-                >
-                  Previous token
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    state.playhead >= traces.kv.modes.naive.steps.length - 1
-                  }
-                  onClick={() =>
-                    send({ type: "timeline.sought", step: state.playhead + 1 })
-                  }
-                >
-                  Next token
-                </button>
-              </div>
-              <p className="empty-note">
-                Changing policy compares complete recordings at the same step.
-                It does not fill a cache halfway through a run.
-              </p>
+              <button
+                type="button"
+                aria-pressed={state.compare}
+                onClick={() =>
+                  send({ type: "compare.selected", enabled: !state.compare })
+                }
+              >
+                {state.compare
+                  ? "Show one execution"
+                  : "Compare both executions"}
+              </button>
+              <details>
+                <summary>Same experiment?</summary>
+                <p>
+                  Both lanes use this recording&apos;s prompt, seed, weights,
+                  generated output, and playhead. Changing policy compares full
+                  executions; it does not fill a cache halfway through a run.
+                </p>
+              </details>
             </>
           ) : (
             <div
@@ -513,20 +516,23 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
         </aside>
       )}
 
-      {state.depth !== "learn" && lesson !== "01" && (
-        <fieldset className="scenario-picker">
-          <legend>Explore another recorded prompt length</legend>
-          {sharedLengths(traces).map((length) => (
-            <button
-              type="button"
-              key={length}
-              aria-pressed={state.promptLength === length}
-              onClick={() => send({ type: "scenario.selected", length })}
-            >
-              {length} tokens
-            </button>
-          ))}
-        </fieldset>
+      {hasAha && lesson !== "01" && (
+        <details className="scenario-picker">
+          <summary>What if the prompt were longer?</summary>
+          <fieldset>
+            <legend>Explore another recorded prompt length</legend>
+            {sharedLengths(traces).map((length) => (
+              <button
+                type="button"
+                key={length}
+                aria-pressed={state.promptLength === length}
+                onClick={() => send({ type: "scenario.selected", length })}
+              >
+                {length} tokens
+              </button>
+            ))}
+          </fieldset>
+        </details>
       )}
       {state.depth === "prove" && (
         <section className="panel proof">

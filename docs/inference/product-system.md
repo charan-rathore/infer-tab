@@ -69,7 +69,7 @@ replay and inspection; verify trace accounting, interaction paths, and browser u
 Document every new function. Avoid a general simulation engine, analytics backend,
 decorative motion, fabricated hardware timing, or formulas that overwrite traces.
 
-## Verification completed
+## Accepted baseline verification
 
 - Web: 31 tests pass, covering discovery gates, observed sums, policy/playhead
   continuity, object DOM continuity across lenses, frozen recording inputs,
@@ -95,3 +95,67 @@ Development hot reload briefly produced module errors during edits; the final
 compiled build and its browser/API check passed. Navigation preserves in-memory
 state. Refresh persistence is explicit through replay files. Custom sentences in
 01 do not replace the independently recorded scenarios in 02 and 03.
+
+## Visual journey extension
+
+The accepted architecture remains in place. `KvVisual` projects each canonical
+position into a compute route and a memory shelf. The same payload element remains
+mounted when policy changes. A comparison lane is a second visual instance of the
+same conceptual position, sourced from the other policy in the exact same trace.
+Each ledger column stacks receipts from that step's actual `newlyComputed` array;
+its derivation sums the observed `kvRowsProjected` fields.
+
+`timeline.play`, `timeline.pause`, `timeline.sought`, and `timeline.replay` own
+playhead intentions. The shared clock requests `timeline.tick {epoch, fromStep}`.
+The reducer rejects stale epochs and duplicate source steps. Seeking recomputes
+the projection from the trace prefix; there is no incremental mathematical counter.
+Route entry stops playback and removes selections from unrelated source sequences.
+The mechanism gate restores a reuse step if the learner has rewound to the initial
+pass. Reset clears discoveries; replay retains discoveries while rewinding work.
+
+02 reuses the position shelf and represents reads as keyed SVG edges. A rejected
+future edge stays invalid when prompt questions become parallel. The same legal
+edges compress into a triangular grid; a new query becomes one row. Beyond twelve
+positions, fixed-scale SVG area replaces individual edges. The canonical object
+view caps rendered positions at twenty-four, plus an inspected offscreen position.
+Length changes select existing recordings, currently through P=128. No large
+scenario instantiates a square number of DOM cells.
+
+03 retains the multiplication/addition symbols and byte groups while the recorded
+dtype width changes. Eight bits per byte and the definitions of FLOP and FLOP/s
+are unit conventions, not inference measurements. The distance/time and small
+work/byte examples are explicitly labeled unit examples. Actual work, payloads,
+and intensity remain trace-derived, with contextual field references.
+
+Reduced motion supplies discrete origins and destinations in 01, the same keyed
+edges before and after compression in 02, and a before/after byte comparison in
+03. Colors supplement shapes, labels, and read rejection marks. Native controls
+and focus transfer to the consequence heading preserve keyboard progression.
+
+`integrity.ts` checks independent trace identities before rendering or import:
+prefix membership, absolute positions, row partitions, cached tensor continuity,
+KV byte products, causal partitions, FLOP products, dtype widths, and ratios.
+These checks validate consistency of Python's records; they do not manufacture
+replacement values or authenticate arbitrary imported recordings. Existing tests
+remain intact; added tests cover stale clock events, replay, corrupted facts,
+keyboard journeys, persistent DOM elements, and bounded large-scenario rendering.
+
+Remaining scope limits: trace-level steps do not model individual tensor kernel
+timing; larger scenarios summarize most objects; cross-experiment tensor values
+remain separate recorded runs. No hardware bottleneck is inferred from these
+logical accounts. Establishing one requires measured traffic and machine throughput.
+
+## Current verification
+
+- All 56 web tests pass, including keyboard-only completion of all three journeys,
+  stale playback rejection, backward reconstruction, lossless replay, stable DOM
+  identity, causal rejection, bounded large-P rendering, and dtype continuity.
+- All 96 Python experiment tests pass: 36 for 01, 35 for 02, and 25 for 03. The
+  repository quality test also passes without changing Python experiment logic.
+- Trace, schema, arithmetic-memory, content, TypeScript, and lint checks pass. The
+  production build completes with a 103 kB shared first-load bundle.
+- The compiled app has no browser errors or framework overlay. At 375 pixels its
+  viewport and document widths both equal 375 pixels, and visible button targets
+  are at least 32 pixels high.
+- With reduced motion emulated, projection animation resolves to `none` while the
+  labeled before and after states remain visible.
