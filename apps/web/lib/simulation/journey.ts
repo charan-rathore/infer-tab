@@ -18,7 +18,7 @@ export const JOURNEY: Record<
   "01": {
     title: "Why build the same past again?",
     problem:
-      "The model has read your sentence. Each new word needs those earlier words. Make one word, then decide what work the next word needs.",
+      "Make one word. Then decide which finished work the next word needs.",
     start: "Build the first word",
     question: "For the next word, how many blocks will this machine build?",
     answers: [
@@ -34,7 +34,7 @@ export const JOURNEY: Record<
   "02": {
     title: "Which questions can happen together?",
     problem:
-      "The shelf is useful. Now consider the questions: the prompt already exists, but its earlier positions must not peek into their future.",
+      "Choose a question. Try to make it read a word from its future.",
     start: "Inspect the first question",
     question: "May the first question read the word at position 1?",
     answers: [
@@ -53,7 +53,7 @@ export const JOURNEY: Record<
   "03": {
     title: "One question. How much stored data?",
     problem:
-      "One new question does relatively little math. Its labels and contents still stretch across the shelf. Count the two quantities separately.",
+      "Keep the calculation fixed. Find out what changes when each number takes less space.",
     start: "Count this question’s math",
     question:
       "If each number occupies 2 bytes instead of 4, what shrinks in this symbolic model?",

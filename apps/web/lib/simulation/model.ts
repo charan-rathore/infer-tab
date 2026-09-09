@@ -51,6 +51,7 @@ export interface MachineState {
   inspectedKey: number | null;
   representation: "connections" | "grid";
   learner: LearnerModel;
+  unitLens: "distance" | "example" | "recording";
 }
 export type SimulationEvent =
   | { type: "lesson.entered"; lesson: Lesson }
@@ -90,6 +91,7 @@ export type SimulationEvent =
   | { type: "depth.selected"; depth: Depth }
   | { type: "job.selected"; job: "prefill" | "decode" }
   | { type: "width.selected"; bytes: 2 | 4 }
+  | { type: "unit-lens.selected"; lens: "distance" | "example" | "recording" }
   | { type: "scenario.selected"; length: number };
 
 export const ANSWERS: Record<Lesson, Prediction[]> = {
@@ -131,6 +133,7 @@ export function initialState(bundle: TraceBundle): MachineState {
     inspectedKey: null,
     representation: "connections",
     learner: initialLearnerModel(),
+    unitLens: "distance",
   };
 }
 
@@ -215,7 +218,8 @@ function reduceSimulationState(
           inspectedKey: null,
           representation: "connections",
         };
-      if (event.lesson === "03") patch = { job: "decode", bytes: 4 };
+      if (event.lesson === "03")
+        patch = { job: "decode", bytes: 4, unitLens: "distance" };
     }
     if (
       event.type === "interaction.started" &&
@@ -357,6 +361,11 @@ function reduceSimulationState(
     case "width.selected":
       return reached(state.lessons["03"], "aha")
         ? { ...state, bytes: event.bytes }
+        : state;
+    case "unit-lens.selected":
+      return reached(state.lessons["03"], "aha") &&
+        ["distance", "example", "recording"].includes(event.lens)
+        ? { ...state, unitLens: event.lens }
         : state;
     case "scenario.selected":
       return sharedLengths(bundle).includes(event.length)

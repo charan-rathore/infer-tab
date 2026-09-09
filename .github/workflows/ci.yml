@@ -63,6 +63,9 @@ jobs:
         working-directory: apps/web
         run: npm run typecheck
 
+      - name: Verify deployment packaging
+        run: node --test scripts/package-vercel.test.mjs
+
       - name: Lint
         working-directory: apps/web
         run: npm run lint

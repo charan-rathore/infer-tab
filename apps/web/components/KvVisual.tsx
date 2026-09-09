@@ -3,6 +3,7 @@
 import { useMachine } from "./MachineProvider";
 import { objectId, projectedWork } from "@/lib/simulation/adapters";
 import type { InferTabTrace, ModeId } from "@/lib/schema";
+import { projectionAction, visualEvent } from "@/lib/visual/projection";
 
 /** Keep one payload element mounted as it passes through compute or rests on the shelf. Motion is CSS projection only. */
 export function KvRoute({
@@ -11,13 +12,21 @@ export function KvRoute({
   output,
   kept,
   beat,
+  repeated = false,
 }: {
   built: boolean;
   reused: boolean;
   output: boolean;
   kept: boolean;
   beat: number;
+  repeated?: boolean;
 }) {
+  const event = visualEvent(
+    "route",
+    projectionAction(built, reused, output, repeated),
+    kept,
+    "accepted row membership",
+  );
   return (
     <span
       className="kv-route"
@@ -25,11 +34,17 @@ export function KvRoute({
       data-kept={kept}
       data-reused={reused}
       data-beat={beat % 2}
+      data-action={event.action}
+      data-from={event.from}
+      data-via={event.via}
+      data-to={event.to}
       aria-hidden="true"
     >
       <span className="route-wire" />
       <span className="compute-station">×</span>
       <span className="shelf-station" />
+      <span className="read-wire" />
+      <span className="read-copy">←</span>
       {(built || reused) && (
         <span className="origin-mark">
           ○<small>before</small>
@@ -38,7 +53,7 @@ export function KvRoute({
       <span className="kv-glyph" data-present={built || reused}>
         <i />
         <i />
-        <small>{reused ? "kept" : kept ? "new" : "rebuilt"}</small>
+        <small>{reused ? "kept" : repeated && !kept ? "rebuilt" : "new"}</small>
       </span>
       {output && <span className="next-glyph">next →</span>}
       <span className="after-mark">{built || reused ? "after" : ""}</span>
@@ -169,6 +184,9 @@ export function CompareLane() {
               output={false}
               kept={policy === "cached"}
               beat={state.playhead}
+              repeated={
+                state.playhead > 0 && token.position < step.position - 1
+              }
             />
           </button>
         );

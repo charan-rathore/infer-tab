@@ -153,6 +153,8 @@ function isEvent(value: unknown): value is SimulationEvent {
       return event.job === "prefill" || event.job === "decode";
     case "width.selected":
       return event.bytes === 2 || event.bytes === 4;
+    case "unit-lens.selected":
+      return ["distance", "example", "recording"].includes(String(event.lens));
     case "scenario.selected":
       return (
         Number.isInteger(event.length) &&

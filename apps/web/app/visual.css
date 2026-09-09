@@ -1,0 +1,637 @@
+/* Each view reorganizes the same mounted machine. Geometry carries the strategy. */
+.semantic-caption {
+  margin: 16px 0 0;
+  padding: 18px 22px;
+  background: var(--ink);
+  color: var(--card);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 18px;
+}
+.semantic-caption > small {
+  font:
+    0.65rem ui-monospace,
+    monospace;
+  letter-spacing: 0.14em;
+  color: #c5d5c8;
+}
+.semantic-caption p {
+  grid-column: 1;
+  margin: 0;
+  max-width: 64ch;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.semantic-caption strong {
+  color: #d7e9a6;
+  font-weight: 650;
+}
+.semantic-caption details {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  max-width: 220px;
+  font-size: 0.7rem;
+}
+.semantic-caption code {
+  color: inherit;
+}
+.semantic-caption[data-caption-kind="PREDICTION"] strong {
+  color: #f2cfaf;
+}
+.semantic-caption[data-caption-kind="TERM_REVEAL"] strong {
+  font-size: 1.3em;
+}
+.adaptive-guide {
+  grid-template-columns: minmax(180px, 1fr) auto;
+  margin-bottom: 2px;
+}
+.adaptive-guide > p {
+  display: none;
+}
+.adaptive-route > span {
+  display: none;
+}
+.adaptive-actions button {
+  min-height: 40px;
+}
+.concept-orientation {
+  font-size: 0.8rem;
+  padding: 6px 0;
+}
+.concept-orientation > summary {
+  display: list-item;
+  color: var(--ink-soft);
+}
+.concept-orientation > summary > span {
+  margin-left: 12px;
+  color: var(--ink);
+}
+.concept-depth {
+  display: flex;
+  padding: 20px 0 12px;
+}
+.concept-depth a {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-decoration: none;
+  border-top: 1px solid var(--line);
+  padding: 16px 10px 8px;
+}
+.depth-point {
+  position: absolute;
+  top: -5px;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper);
+}
+[aria-current="step"] > .depth-point {
+  background: var(--memory);
+}
+.concept-depth [aria-current="step"] {
+  background: var(--memory-soft);
+}
+.concept-depth small,
+.evidence-mark {
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+}
+.concept-relations {
+  max-width: 70ch;
+}
+.journey-machine .machine {
+  margin-top: 0;
+  border-top: 0;
+}
+.machine-header {
+  padding-block: 20px;
+}
+.journey-machine[data-compressed="true"] .discovery .prediction-record {
+  display: none;
+}
+.read-wire,
+.read-copy {
+  display: none;
+}
+.kv-route[data-action="retain-and-read"] .read-wire {
+  display: block;
+  position: absolute;
+  left: 34%;
+  width: 49%;
+  top: 31px;
+  border-bottom: 1px dashed var(--memory);
+}
+.kv-route[data-action="retain-and-read"] .read-copy {
+  display: block;
+  position: absolute;
+  left: 34%;
+  top: 21px;
+  color: var(--memory);
+  font:
+    1.15rem ui-monospace,
+    monospace;
+}
+.kv-route[data-action="retain-and-read"][data-beat="0"] .read-copy {
+  animation: read-even 1100ms ease-out both;
+}
+.kv-route[data-action="retain-and-read"][data-beat="1"] .read-copy {
+  animation: read-odd 1100ms ease-out both;
+}
+@keyframes read-even {
+  0%,
+  15% {
+    left: 80%;
+  }
+  65%,
+  100% {
+    left: 34%;
+  }
+}
+@keyframes read-odd {
+  0%,
+  15% {
+    left: 80%;
+  }
+  65%,
+  100% {
+    left: 34%;
+  }
+}
+/* A repeated position starts at its old result, returns through compute, then settles. */
+.kv-route[data-action="recompute"][data-beat="0"] .kv-glyph {
+  animation: rebuild-even 1300ms ease-in-out both;
+}
+.kv-route[data-action="recompute"][data-beat="1"] .kv-glyph {
+  animation: rebuild-odd 1300ms ease-in-out both;
+}
+@keyframes rebuild-even {
+  0%,
+  12% {
+    left: 83%;
+    opacity: 0.5;
+  }
+  45%,
+  72% {
+    left: 34%;
+    opacity: 1;
+  }
+  100% {
+    left: 34%;
+  }
+}
+@keyframes rebuild-odd {
+  0%,
+  12% {
+    left: 83%;
+    opacity: 0.5;
+  }
+  45%,
+  72% {
+    left: 34%;
+    opacity: 1;
+  }
+  100% {
+    left: 34%;
+  }
+}
+.kv-route[data-action="recompute"] .origin-mark {
+  left: 83%;
+}
+.machine[data-teaching-strategy="physical-shelf"] .machine-object {
+  height: 68px;
+}
+.machine[data-teaching-strategy="physical-shelf"] .shelf-station {
+  bottom: -19px;
+}
+.machine[data-teaching-strategy="work-receipts"] .primary-lane {
+  display: flex;
+  flex-direction: column;
+}
+.machine[data-teaching-strategy="work-receipts"] .work-ledger {
+  order: -1;
+  padding: 24px;
+  border-top: 0;
+  border-bottom: 1px solid var(--line);
+}
+.machine[data-teaching-strategy="work-receipts"] .work-columns {
+  min-height: 160px;
+}
+.machine[data-teaching-strategy="work-receipts"] .receipt-stack {
+  max-width: 62px;
+  transform-origin: bottom;
+  transform: scaleY(1.3);
+  margin-bottom: 16px;
+}
+.machine[data-teaching-strategy="work-receipts"] .machine-object {
+  height: 49px;
+}
+.machine[data-teaching-strategy="causal-invariant"] .machine-objects {
+  max-height: 260px;
+  overflow-y: auto;
+}
+.causal-invariant {
+  padding: 22px;
+  border-top: 1px solid var(--line);
+}
+.causal-invariant > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+}
+.causal-invariant h3 {
+  margin: 0;
+}
+.causal-invariant header span {
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+.invariant-positions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 14px 0;
+}
+.invariant-positions button {
+  font-size: 0.78rem;
+  min-height: 36px;
+  padding: 6px 10px;
+}
+.invariant-table {
+  max-width: 600px;
+  margin: 18px auto;
+}
+.invariant-row {
+  display: grid;
+  grid-template-columns: 45px 1fr 1fr;
+  gap: 18px;
+  align-items: center;
+  min-height: 36px;
+}
+.invariant-row > span {
+  font:
+    0.76rem ui-monospace,
+    monospace;
+}
+.tensor-preview {
+  display: flex;
+  height: 25px;
+  gap: 5px;
+}
+.tensor-preview span {
+  flex: 1;
+  background: var(--memory);
+  border-bottom: 2px solid var(--ink);
+}
+.invariant-labels {
+  color: var(--ink-soft);
+}
+.timeline-dock {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  z-index: 3;
+  border-bottom: 2px solid var(--ink);
+  padding: 8px 10px;
+}
+.timeline-dock .controls {
+  margin: 0 0 4px;
+}
+.timeline-dock .timeline-utilities {
+  font-size: 0.7rem;
+}
+.timeline-dock .timeline-utilities button {
+  min-height: 30px;
+  padding-block: 4px;
+}
+.attention-view {
+  position: relative;
+}
+.shape-orientation {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-soft);
+  font:
+    0.72rem ui-monospace,
+    monospace;
+  margin-bottom: 12px;
+}
+.attention-view[data-teaching-strategy="causal-edges"]
+  .dependency-edge[data-query-active="false"] {
+  opacity: 0.18;
+}
+.attention-view[data-teaching-strategy="causal-edges"]
+  .dependency-edge[data-query-active="true"] {
+  stroke-width: 5;
+}
+.attention-view[data-teaching-strategy="timeline-viewpoint"]
+  .dependency-edge[data-query-active="false"] {
+  opacity: 0.1;
+}
+.attention-view[data-teaching-strategy="tensor-shape-derivation"] .shape-focus {
+  font:
+    1.1rem ui-monospace,
+    monospace;
+}
+.attention-view[data-teaching-strategy="triangle-transformation"]
+  .dependency-stage {
+  background: var(--card);
+}
+.dependency-stage {
+  min-height: 250px;
+}
+.dependency-edge.rejected {
+  stroke-dasharray: 5 7;
+}
+.region-label {
+  display: block;
+  font:
+    0.65rem ui-monospace,
+    monospace;
+  letter-spacing: 0.16em;
+  color: var(--ink-soft);
+  margin-bottom: 18px;
+}
+.payload-view {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  position: relative;
+  gap: 24px;
+}
+.payload-view > .unit-focus {
+  grid-column: 1 / -1;
+}
+.payload-view .symbolic-work {
+  border-right: 1px dashed var(--line);
+}
+.payload-read {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 18px;
+  font:
+    0.9rem ui-monospace,
+    monospace;
+}
+.payload-read span {
+  padding: 7px 12px;
+  background: var(--memory-soft);
+  border-bottom: 2px solid var(--memory);
+}
+.payload-read i {
+  font-size: 1.7rem;
+  flex: 1;
+  text-align: center;
+}
+.payload-view[data-teaching-strategy="dtype-payload"] .dtype-value {
+  min-height: 95px;
+}
+.payload-view[data-teaching-strategy="dtype-payload"] .byte-group {
+  height: 48px;
+}
+.payload-view[data-teaching-strategy="dtype-payload"] .byte-group small {
+  top: 56px;
+}
+.payload-view[data-teaching-strategy="symbolic-derivation"]
+  .symbolic-work
+  > details {
+  display: none;
+}
+.symbolic-fraction {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  margin: 24px 0;
+  font:
+    1.2rem ui-monospace,
+    monospace;
+}
+.symbolic-fraction > span {
+  padding: 12px;
+}
+.fraction-work {
+  border-bottom: 2px solid var(--ink);
+}
+.symbolic-fraction small {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 6px;
+}
+.symbolic-fraction strong {
+  margin: 12px 0;
+  font-size: 1rem;
+}
+.division-machine {
+  margin-top: 18px;
+}
+.division-lenses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.division-lenses button {
+  min-height: 36px;
+  font-size: 0.7rem;
+  padding: 6px 8px;
+}
+.ratio-equation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 24px 0 12px;
+  font-family: ui-monospace, monospace;
+}
+.ratio-equation > span {
+  min-width: 0;
+  text-align: center;
+}
+.ratio-equation small {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.65rem;
+}
+.ratio-equation b {
+  font-size: 1.35rem;
+}
+.ratio-numerator,
+.ratio-denominator,
+.ratio-result {
+  padding: 12px 4px;
+  border-bottom: 2px solid var(--memory);
+}
+.ratio-result {
+  background: var(--memory-soft);
+}
+.ratio-unit {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
+  font:
+    0.9rem ui-monospace,
+    monospace;
+}
+.division-machine > small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kv-route[data-action][data-beat] .kv-glyph,
+  .kv-route[data-action][data-beat] .read-copy {
+    animation: none;
+  }
+  .kv-route[data-action="retain-and-read"] .read-copy {
+    left: 47%;
+  }
+  .semantic-caption {
+    scroll-behavior: auto;
+  }
+}
+@media (max-width: 600px) {
+  .adaptive-guide {
+    grid-template-columns: 1fr;
+  }
+  .semantic-caption {
+    padding: 14px;
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .semantic-caption p {
+    font-size: 0.92rem;
+  }
+  .semantic-caption details {
+    grid-column: 1;
+    grid-row: auto;
+    max-width: none;
+    margin-top: 4px;
+  }
+  .concept-orientation > summary > span {
+    display: none;
+  }
+  .concept-depth a {
+    padding-inline: 5px;
+  }
+  .concept-depth strong {
+    font-size: 0.75rem;
+  }
+  .evidence-mark {
+    display: none;
+  }
+  .timeline-dock {
+    padding: 6px 0;
+  }
+  .timeline-dock .controls {
+    gap: 5px;
+  }
+  .timeline-dock .controls button {
+    font-size: 0.78rem;
+    flex: 1;
+    padding-inline: 5px;
+  }
+  .timeline-dock .timeline {
+    font-size: 0.78rem;
+  }
+  .machine[data-teaching-strategy="work-receipts"] .work-ledger {
+    padding: 18px 10px;
+  }
+  .machine[data-teaching-strategy="work-receipts"] .machine-object {
+    height: 52px;
+  }
+  .causal-invariant {
+    padding: 16px 10px;
+  }
+  .causal-invariant > header {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .invariant-row {
+    gap: 10px;
+    grid-template-columns: 32px 1fr 1fr;
+  }
+  .payload-view .symbolic-work {
+    border-right: 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .ratio-equation {
+    gap: 5px;
+  }
+  .ratio-equation b {
+    font-size: 1.05rem;
+  }
+  .region-label {
+    margin-bottom: 10px;
+  }
+}
+
+/* Keep the central machine near the first action; evidence stays available below it. */
+.page > header .lede {
+  display: none;
+}
+.journey {
+  margin-block: 12px;
+}
+.journey-machine .discovery h2 {
+  margin-block: 10px;
+}
+.journey-machine .discovery {
+  margin-top: 0;
+}
+.journey-machine .discovery p {
+  max-width: 70ch;
+}
+.journey-machine[data-milestone="problem"] .adaptive-guide {
+  padding-block: 5px;
+  margin-block: 4px;
+}
+@media (max-width: 600px) {
+  .payload-view {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .page {
+    padding-top: 16px;
+  }
+}
+
+.timeline-dock {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 3px 20px;
+}
+.timeline-dock .motion-alternative {
+  align-self: center;
+}
+.kv-route[data-kept="false"] .shelf-station {
+  background: transparent;
+  border-bottom-style: dashed;
+}
+@media (max-width: 600px) {
+  .timeline-dock {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .timeline-dock .motion-alternative {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline-dock .motion-alternative {
+    display: block;
+  }
+}
+
+/* The carried shelf remains inspectable without displacing the active explanation at large P. */
+.journey-machine:not([data-lesson="01"]) .machine-objects {
+  max-height: 180px;
+  overflow-y: auto;
+  align-content: flex-start;
+}

@@ -9,12 +9,17 @@ const EXPERIMENT_DIR = path.resolve(
   process.cwd(),
   "../../experiments/01-why-kv-cache",
 );
-const SAMPLE = path.resolve(process.cwd(), "public/traces/sample-why-kv-cache.json");
+const SAMPLE = path.resolve(
+  process.cwd(),
+  "public/traces/sample-why-kv-cache.json",
+);
 
+/** Read and validate the committed recording before exposing it to any client. */
 async function readSample() {
   return assertValidTrace(JSON.parse(await readFile(SAMPLE, "utf8")));
 }
 
+/** Select the local interpreter architecture without changing the experiment. */
 function pythonInvocation(): { cmd: string; prefix: string[] } {
   // WHY arch -arm64: on some Macs Node itself is running under Rosetta
   // (x86_64). A child python3 then inherits that arch and cannot load an
@@ -26,6 +31,7 @@ function pythonInvocation(): { cmd: string; prefix: string[] } {
   return { cmd: "python3", prefix: [] };
 }
 
+/** Execute the local Python source and return its recorded result for validation. */
 function runPython(prompt: string, maxNewTokens: number): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const { cmd, prefix } = pythonInvocation();
@@ -63,6 +69,7 @@ function runPython(prompt: string, maxNewTokens: number): Promise<unknown> {
   });
 }
 
+/** Serve a validated recording without requiring Python at runtime. */
 export async function GET() {
   try {
     return Response.json({ source: "sample", trace: await readSample() });
@@ -74,7 +81,17 @@ export async function GET() {
   }
 }
 
+/** Run locally, or explicitly serve the recorded scenario on the hosted application. */
 export async function POST(req: Request) {
+  if (process.env.VERCEL) {
+    return Response.json({
+      source: "sample",
+      fallback: true,
+      error:
+        "Live Python is local-only. This deployment uses validated recorded traces.",
+      trace: await readSample(),
+    });
+  }
   const body = (await req.json().catch(() => ({}))) as {
     prompt?: string;
     maxNewTokens?: number;

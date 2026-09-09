@@ -213,3 +213,140 @@ and simulation state together by reducing the ordered event list. A route preser
 concept knowledge. A custom Experiment 01 recording starts a fresh discovery and
 learner model because the prior evidence belonged to a different source run.
 Mathematical values still follow trace to derivation to visual output.
+
+## Semantic visual language
+
+`lib/visual/projection.ts` resolves an explanation frame from the accepted machine
+state, source recordings, and teaching decision. It contains object actions,
+before/cause/after locations, the selected representation, and one semantic caption.
+It is a pure projection, not a second reducer. Projection and recomputation pass
+through compute. Reuse starts and ends in memory with a read between them. A naive
+recomputation originates from a conceptual previous result, not a stored cache.
+
+`KvRoute` applies this grammar to the same mounted payload glyph. CSS interpolates
+between these locations once per accepted step. No animation callback emits a
+simulation event. Reduced motion uses the same origin, compute, result, and read
+markers as discrete evidence. The timeline stays outside the animated objects.
+
+The adaptive representations have different spatial emphasis:
+
+- Physical shelf keeps the memory column continuous and shows reads returning to
+  compute while old pairs remain fixed.
+- Work receipts gives accumulated per-step columns the dominant position.
+- Synchronized comparison gives the two policies aligned lanes from one trace.
+- Causal invariant aligns one position's actual K and V previews vertically across
+  the observed steps. Exact values remain accessible; previews are not a claim
+  about unrecorded tensors or full numerical equivalence.
+- Attention preserves edge identities through line-to-grid transforms, emphasizes
+  the selected causal row, and retains timeline and tensor-shape alternatives.
+  Large scenarios use a single inclusive staircase outline. Its exact area equals
+  the recorded permitted-cell count, including the diagonal, with O(P) vertices
+  and O(1) SVG elements rather than O(P²) DOM cells.
+- Arithmetic retains its symbolic chain inside compute while byte groups shrink
+  inside memory. The division lens reuses the same numerator, denominator, and
+  quotient objects for distance/time, an authored work/byte example, and the actual
+  recording. Rounded quotients are marked approximate.
+
+`SemanticCaption` has one polite announcement region. Caption kinds distinguish
+observation, prediction, cause, consequence, derivation, terminology, proof, caveat,
+and next question. Active captions are reconstructed from semantic state when
+seeking or restoring replay; timestamps and transition completion do not own copy.
+Caption evidence distinguishes authored teaching language from trace paths.
+Redundant live announcements in the numerical and causal-edge panels were removed.
+
+The implementation borrows composition and derived-signal ideas from
+[Motion Canvas flow](https://motion-canvas.io/docs/flow/) and
+[signals](https://motion-canvas.io/docs/signals/). It borrows stable scene identities,
+frame resolution, and separation of layout from lifecycle from CaptionCat's
+[architecture](https://github.com/itisshikhar/captioncat/blob/main/docs/architecture.md),
+[lifecycle](https://github.com/itisshikhar/captioncat/blob/main/docs/components/lifecycle.md),
+and [layout motion](https://github.com/itisshikhar/captioncat/blob/main/docs/components/layout-motion.md).
+These are architectural references, not installed dependencies or copied presets.
+
+`ConceptOrientation` uses the accepted concept graph for three stable depths and
+contextual prerequisite/next-question relationships. It stays secondary to the
+machine. Prerequisite traversal is authored curriculum structure, not a claim that
+an evidence score proves scientific mastery.
+
+`lib/visual/clip.ts` is a lazy explanation-frame generator over the existing replay.
+It revalidates the recording, reduces accepted events in order, and yields distinct
+semantic frames with their captions. Duplicate or stale ticks do not create extra
+consequences. It provides a future capture seam; it does not encode video, implement
+export, or load in the normal learning bundle. A future encoder must consume these
+frames and choose presentation pacing separately from mathematical state.
+
+3D was evaluated against the present relationships and tensor lesson scope. Nothing
+here becomes clearer through depth than through ordered rows, a shared shelf, and
+area. React Three Fiber, Motion Canvas, Remotion, and video encoders were therefore
+not installed. Normal learning creates no WebGL context and no continuous animation
+loop. Dependencies and lockfile are unchanged.
+
+On Vercel, trace POST handlers explicitly return validated committed recordings and
+label live Python as local-only. A hosted custom sentence never masquerades as a
+Python execution. Local requests retain the existing Python implementation. The
+API functions' file-tracing manifests include their committed sample JSON files.
+For a Vercel project, set root directory to `apps/web`, enable source files outside
+that directory for `packages/trace-schema`, use `npm ci`, and build with
+`npm run build`. Do not supply Python runtime credentials or a model API key.
+
+The file-upload deployment connector detects an application root and can omit
+sibling workspace directories. `scripts/package-vercel.mjs` emits a self-contained
+upload manifest: application paths become root-relative, the unchanged shared
+schema moves to `trace-schema`, and only its TypeScript path alias changes. It does
+not duplicate or regenerate inference data. The packaging test compares each trace
+and schema byte-for-byte with the repository source. Git-based deployments can use
+the normal monorepo configuration described above.
+
+## Pass B verification
+
+The production application is available at <https://infertab.vercel.app>. The tested
+file deployment is `dpl_9ttzyGoJgPt5apABexGbVJEfc1b2`. Its build reached READY and
+Chromium exercised the actual hosted application, rather than treating a successful
+local build as evidence of deployment. An existing Vercel project rooted at
+`apps/web` needs that prefix added to each packaged upload path.
+
+Verification completed with 86 web tests across 11 files, 96 Python tests (36/35/25),
+the repository-quality test, and the deployment-package preservation test. Trace
+contracts, content, TypeScript, lint, and production build pass. Existing corruption,
+raw-logit equivalence, replay, and stale-playback tests remain intact. New coverage
+checks exact visual reconstruction, cached versus recomputed trajectories, strategy
+invariance, caption replay, inclusive causal area, ratio object continuity, and hosted
+sample disclosure. CI also verifies the deployment package.
+
+On an Apple M1 machine with 8 GB RAM, the same Chromium procedure compared the
+accepted Pass A production build against Pass B. Application JavaScript loaded across all three routes was 444,816 bytes /
+130,267 gzip bytes in A and 456,645 bytes / 133,397 gzip bytes in the deployed B.
+This excludes the separately injected accessibility audit library. The gzip increase
+is 3,130 bytes, approximately 2.4%. There are no added runtime dependencies.
+
+| Browser observation | Pass A | Deployed Pass B |
+| --- | ---: | ---: |
+| Initial DOM elements | 180 | 216 |
+| Synchronized comparison DOM | 461 | 521 |
+| P=6 attention DOM | 293 | 335 |
+| P=128 attention DOM | 544 | 622 |
+| P=128 decode DOM | 544 | 622 |
+| P=128 arithmetic DOM | 592 | 686 |
+| Running animations after settling | 0 | 0 |
+| Canvas elements | 0 | 0 |
+
+The B browser reported approximately 4.4 to 8.3 MB of JavaScript heap during these
+observations. This is a Chromium heap estimate, not process memory or a hardware
+capacity guarantee. A 119-interval requestAnimationFrame sample after stepping had
+p95 and maximum intervals of 16.8 ms. Cold interaction long tasks reached 284 ms in
+the deployed run; earlier local observations reached 73 ms. These are diagnostic
+samples under shared machine load, not a calibrated benchmark or an INP claim.
+
+At 375px every checked state had document width 375px. Browser keyboard input
+completed prediction, mechanism, derivation, terminology, next question, and an
+alternative strategy for all three lessons with reduced motion enabled. No active
+animations remained. The deployed replay download/reset/import restored the selected
+unit lens and identical semantic caption. Hosted POST returned a validated sample,
+marked fallback and local-only Python. Axe reported zero WCAG A/AA violations in
+all three completed keyboard journeys and the arithmetic manipulation state. Browser
+page errors were empty. These checks do not replace a human screen-reader audit.
+
+Remaining evaluation work is substantive: novice comprehension and transfer have
+not been studied, performance needs controlled runs on the target laptop, adaptive
+strategies remain authored, and the capture seam does not export video. Numerical
+quality targets are not awarded from screenshots or passing tests alone.

@@ -34,6 +34,9 @@ import {
 } from "@/lib/simulation/replay";
 import { assertValidTrace } from "@/lib/schema";
 import { teachingDecision } from "@/lib/teaching/policy";
+import { SemanticCaption } from "./SemanticCaption";
+import { ConceptOrientation } from "./ConceptOrientation";
+import { projectVisualFrame } from "@/lib/visual/projection";
 
 const PATHS: Record<Lesson, string> = {
   "01": "/",
@@ -84,6 +87,7 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
   const teaching = teachingDecision(lesson, state.learner);
   const adaptiveCompare =
     state.compare || teaching.strategy === "synchronized-comparison";
+  const visual = projectVisualFrame(state, traces, lesson);
 
   /** Download an explicit, portable replay; the file includes the prompt and recordings the user chose. */
   function downloadReplay() {
@@ -142,27 +146,9 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
       className="journey-machine"
       data-lesson={lesson}
       data-milestone={stage}
+      data-compressed={teaching.compressed}
+      data-strategy={teaching.strategy}
     >
-      <details className="curiosity-depth">
-        <summary>Explore the evidence</summary>
-        <div className="depth" role="group" aria-label="Learning depth">
-          {(["learn", "inspect", "prove"] as const).map((depth) => (
-            <button
-              type="button"
-              key={depth}
-              aria-pressed={state.depth === depth}
-              className={state.depth === depth ? "on" : ""}
-              onClick={() => send({ type: "depth.selected", depth })}
-            >
-              {depth === "learn"
-                ? "Learn"
-                : depth === "inspect"
-                  ? "Inspect"
-                  : "Prove"}
-            </button>
-          ))}
-        </div>
-      </details>
       <article className="lesson discovery" aria-label="Current discovery">
         <p className="eyebrow">
           Observation {MILESTONES.indexOf(stage) + 1} of {MILESTONES.length}
@@ -212,7 +198,7 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
             }
           </p>
         )}
-        <div aria-live="polite" aria-atomic="true">
+        <div>
           {stage === "failure" && (
             <div className="failure" data-discovery="failure">
               {lesson === "01" && (
@@ -237,7 +223,8 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
             </div>
           )}
           {hasAha && (
-            <div className="aha" data-discovery="aha">
+            <details className="aha" data-discovery="aha">
+              <summary>Inspect the exact consequence</summary>
               {lesson === "01" && (
                 <>
                   <p>
@@ -277,7 +264,7 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
                   measured numerical inference run.
                 </p>
               )}
-            </div>
+            </details>
           )}
         </div>
         <div className="controls">
@@ -321,6 +308,7 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
       </article>
 
       <AdaptiveGuide lesson={lesson} decision={teaching} />
+      <SemanticCaption caption={visual.caption} />
 
       {lesson !== "01" && (
         <p className="source-note">
@@ -335,12 +323,12 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
         </p>
       )}
 
-      <MachineBoard lesson={lesson} strategy={teaching.strategy} />
       {lesson === "01" && reached(discovery, "failure") && <Timeline />}
+      <MachineBoard lesson={lesson} strategy={teaching.strategy} />
       {lesson === "02" && <AttentionBoard strategy={teaching.strategy} />}
       {lesson === "03" && <PayloadBoard strategy={teaching.strategy} />}
       {lesson === "01" && step && (
-        <p className="live-count" role="status">
+        <p className="live-count">
           Step {state.playhead + 1} of {traces.kv.modes.naive.steps.length}.
           Built this step: <b>{step.kvRowsProjected}</b>. Built across observed
           steps: <b>{state.policy === "naive" ? rebuild.value : keep.value}</b>.
@@ -588,6 +576,27 @@ export function JourneyMachine({ lesson }: { lesson: Lesson }) {
         </section>
       )}
 
+      <ConceptOrientation lesson={lesson} />
+      <details className="curiosity-depth">
+        <summary>Explore the evidence</summary>
+        <div className="depth" role="group" aria-label="Learning depth">
+          {(["learn", "inspect", "prove"] as const).map((depth) => (
+            <button
+              type="button"
+              key={depth}
+              aria-pressed={state.depth === depth}
+              className={state.depth === depth ? "on" : ""}
+              onClick={() => send({ type: "depth.selected", depth })}
+            >
+              {depth === "learn"
+                ? "Learn"
+                : depth === "inspect"
+                  ? "Inspect"
+                  : "Prove"}
+            </button>
+          ))}
+        </div>
+      </details>
       <details className="hood">
         <summary>Recording and replay</summary>
         <p>{machine.source}</p>

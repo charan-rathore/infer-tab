@@ -10,6 +10,7 @@ import kv from "../public/traces/sample-why-kv-cache.json";
 import prefill from "../public/traces/sample-prefill-decode.json";
 import arithmetic from "../public/traces/journey-arithmetic-memory.json";
 import "./globals.css";
+import "./visual.css";
 
 export const metadata: Metadata = {
   title: "InferTab: one machine, three discoveries",

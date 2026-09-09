@@ -13,6 +13,9 @@ import { reached, sharedLengths, type Lesson } from "@/lib/simulation/model";
 import type { TraceToken } from "@/lib/schema";
 import { KvRoute, CompareLane, WorkLedger } from "./KvVisual";
 import type { ExplanationStrategyId } from "@/lib/teaching/concepts";
+import { CausalInvariant } from "./CausalInvariant";
+import { UnitDivision } from "./UnitDivision";
+import { causalAreaPath } from "@/lib/visual/geometry";
 
 /** Project stable token-position objects into the workbench and shelf without remounting on policy changes. */
 export function MachineBoard({
@@ -160,6 +163,12 @@ export function MachineBoard({
                     <small>#{token.position}</small> {token.text}
                   </span>
                   <KvRoute
+                    repeated={
+                      lesson === "01" &&
+                      !!step &&
+                      state.playhead > 0 &&
+                      token.position < step.position - 1
+                    }
                     built={
                       built || (lesson !== "01" && introduced && !showDecode)
                     }
@@ -242,20 +251,7 @@ export function MachineBoard({
         )}
       {lesson === "01" &&
         strategy === "causal-invariant" &&
-        reached(discovery, "aha") && (
-          <div
-            className="strategy-focus invariant-focus"
-            aria-label="Causal invariant evidence"
-          >
-            <strong>Past positions are future-invariant.</strong>
-            <span>
-              Recorded outputs match:{" "}
-              {String(traces.kv.equivalence.outputsMatch)}. Maximum raw-score
-              difference {traces.kv.equivalence.maxAbsLogitDiff}, tolerance{" "}
-              {traces.kv.equivalence.tolerance}.
-            </span>
-          </div>
-        )}
+        reached(discovery, "aha") && <CausalInvariant />}
       {tokens.length > maximum && (
         <p>
           {tokens.length - maximum} additional positions summarized. Counts
@@ -358,6 +354,10 @@ export function AttentionBoard({
       aria-label="Questions and permitted reads"
       data-teaching-strategy={strategy}
     >
+      <div className="shape-orientation" aria-hidden="true">
+        <span>Questions ↓</span>
+        <span>History →</span>
+      </div>
       <h3>
         {job === "prefill"
           ? introduced
@@ -392,10 +392,7 @@ export function AttentionBoard({
               stroke="var(--line)"
             />
             {job === "prefill" ? (
-              <path
-                d={`M12 12 L${12 + columns} ${12 + rows} H12 Z`}
-                fill="var(--memory)"
-              />
+              <path d={causalAreaPath(rows)} fill="var(--memory)" />
             ) : (
               <rect
                 x="12"
@@ -403,7 +400,6 @@ export function AttentionBoard({
                 width={columns}
                 height={rows}
                 fill="var(--memory)"
-                stroke="var(--memory)"
               />
             )}
             <text x="12" y={areaScale + 29}>
@@ -431,6 +427,7 @@ export function AttentionBoard({
                     data-edge={`${i}:${j}`}
                     data-allowed={allowed}
                     className={`dependency-edge ${allowed ? "" : "rejected"}`}
+                    data-query-active={i === query}
                     d={
                       compact
                         ? `M${keyX(j) - 6} ${y} L${keyX(j) + 6} ${y}`
@@ -446,6 +443,7 @@ export function AttentionBoard({
                   cx="18"
                   cy={job === "decode" ? 80 : rowY(i)}
                   r="8"
+                  data-query-active={i === query}
                   fill="var(--ink)"
                 />
                 <text x="3" y={(job === "decode" ? 80 : rowY(i)) - 11}>
@@ -523,7 +521,6 @@ export function AttentionBoard({
       </div>
       {inspected !== null && (
         <p
-          role="status"
           className={forbidden ? "dependency-rejection" : "dependency-accepted"}
         >
           {forbidden
@@ -622,6 +619,7 @@ export function PayloadBoard({
         </div>
       )}
       <div className="symbolic-work">
+        <span className="region-label">COMPUTE</span>
         <h3>One piece of the calculation</h3>
         <div
           className="operation-chain"
@@ -674,9 +672,33 @@ export function PayloadBoard({
             </code>
           </details>
         )}
+        {strategy === "symbolic-derivation" && showData && (
+          <div
+            className="symbolic-fraction"
+            aria-label="Trace-derived work per byte"
+          >
+            <span className="fraction-work">
+              {active.flops}
+              <small>FLOPs</small>
+            </span>
+            <span className="fraction-data">
+              {active.q} + {active.k} + {active.v}
+              <small>Q + K + V bytes</small>
+            </span>
+            <strong>{Number(active.intensity.toFixed(3))} FLOPs / byte</strong>
+            <code className="trace-path">{active.source}</code>
+          </div>
+        )}
       </div>
       {showData && (
         <div className="information-payload">
+          <span className="region-label">MEMORY</span>
+          <div className="payload-read" aria-hidden="true">
+            <span>Q</span>
+            <i>←</i>
+            <span>K</span>
+            <span>V</span>
+          </div>
           <h3>What one value occupies</h3>
           <div
             className="dtype-value"
@@ -741,23 +763,7 @@ export function PayloadBoard({
           {reached(discovery, "aha") && (
             <details className="division-lesson" open>
               <summary>How much work for one byte?</summary>
-              <p className="unit-example">100 km / 2 hours = 50 km per hour</p>
-              <p className="unit-example">
-                100 FLOPs / 50 bytes = 2 FLOPs per byte
-              </p>
-              <small>Unit examples, not measurements of this run.</small>
-              <div className="unit-ratio">
-                <span>{active.flops} FLOPs</span>
-                <b>÷</b>
-                <span>{active.bytes} bytes</span>
-                <b>=</b>
-                <span>
-                  {active.intensity.toFixed(3)}
-                  <br />
-                  FLOPs per byte
-                </span>
-              </div>
-              <p>A / B asks: how much A for one B?</p>
+              <UnitDivision />
             </details>
           )}
         </div>
