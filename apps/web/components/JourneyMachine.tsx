@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { useMachine } from "./MachineProvider";
 import { MachineBoard, AttentionBoard, PayloadBoard } from "./MachineBoard";
 import { AdaptiveGuide } from "./AdaptiveGuide";
-import { JOURNEY } from "@/lib/simulation/journey";
+import { JOURNEY, LESSON_PATHS } from "@/lib/simulation/journey";
 import {
   projectedWork,
   arithmeticAccount,
@@ -38,11 +38,7 @@ import { SemanticCaption } from "./SemanticCaption";
 import { ConceptOrientation } from "./ConceptOrientation";
 import { projectVisualFrame } from "@/lib/visual/projection";
 
-const PATHS: Record<Lesson, string> = {
-  "01": "/",
-  "02": "/prefill-vs-decode",
-  "03": "/arithmetic-vs-memory",
-};
+const PATHS = LESSON_PATHS;
 
 /** Compose every lens from the same discovery controls, persistent objects, and trace-derived evidence. */
 export function JourneyMachine({ lesson }: { lesson: Lesson }) {

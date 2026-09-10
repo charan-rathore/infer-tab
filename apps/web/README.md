@@ -20,7 +20,8 @@ On Apple Silicon, the API forces `arch -arm64 python3` so a Rosetta-hosted Node 
 
 No Grafana charts. The point is to see blocks being rebuilt versus blocks sitting on a shelf.
 
-The three routes now select lenses of one mounted machine in `app/layout.tsx`.
+`/` is a self-playing catalog. `/repeating-work`, `/prefill-vs-decode`, and
+`/arithmetic-vs-memory` select lenses of one mounted machine in `app/layout.tsx`.
 `MachineProvider` owns a deterministic event reducer; `JourneyMachine` supplies the
 shared discovery flow; `MachineBoard` projects stable position objects. The small
 modules under `lib/simulation/` own trace adapters, semantic events, derivation

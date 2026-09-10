@@ -586,6 +586,7 @@ button[aria-pressed="true"] {
   max-width: 1000px;
   margin: auto;
   padding: 32px 24px 64px;
+  overflow-x: clip;
 }
 h1 {
   font-size: clamp(2rem, 5vw, 3rem);
@@ -1225,6 +1226,104 @@ summary {
     padding-left: 8px;
   }
 }
+.catalog {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+  overflow-x: clip;
+}
+.catalog > h1 {
+  font-size: 1.7rem;
+  margin: 4px 0 0;
+}
+.catalog-stage {
+  min-width: 0;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.catalog-label {
+  margin: 0 0 12px;
+  font-size: 1.12rem;
+}
+.catalog-scene {
+  min-width: 0;
+}
+.catalog-scene .machine,
+.catalog-scene .attention-view,
+.catalog-scene .payload-view {
+  margin: 0;
+}
+.catalog .machine-header,
+.catalog .machine-legend,
+.catalog .query-control,
+.catalog .dependency-keys,
+.catalog .dependency-stage > button,
+.catalog .attention-view details,
+.catalog .symbolic-work > details:first-of-type,
+.catalog .payload-view .division-lesson {
+  display: none;
+}
+.catalog-transport {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.catalog-map {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.catalog-plays,
+.catalog-locked {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+.catalog-map a,
+.catalog-locked span {
+  display: block;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+.catalog-map a[data-current="true"] {
+  border-color: var(--memory);
+  background: var(--memory-soft);
+}
+.catalog-locked span {
+  color: var(--ink-soft);
+  cursor: default;
+}
+.catalog-locked small {
+  display: block;
+  margin-top: 4px;
+  font:
+    0.68rem ui-monospace,
+    monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.catalog-start {
+  margin: 4px 0 0;
+}
+.catalog[data-reduced-motion="true"] .kv-route[data-built="true"][data-beat] .kv-glyph,
+.catalog[data-reduced-motion="true"] .dependency-edge,
+.catalog[data-reduced-motion="true"] .byte-group,
+.catalog[data-reduced-motion="true"] .information-payload .payload-meter span {
+  animation: none;
+  transition: none;
+}
+
 @media (max-width: 600px) {
   .page > header h1 {
     font-size: 1.35rem;
@@ -1265,5 +1364,15 @@ summary {
   }
   .unit-example {
     font-size: 0.85rem;
+  }
+  .catalog > h1 {
+    font-size: 1.35rem;
+  }
+  .catalog-plays,
+  .catalog-locked {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .catalog .execution-lanes.comparing {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

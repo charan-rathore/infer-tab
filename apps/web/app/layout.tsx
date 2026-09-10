@@ -13,9 +13,9 @@ import "./globals.css";
 import "./visual.css";
 
 export const metadata: Metadata = {
-  title: "InferTab: one machine, three discoveries",
+  title: "InferTab: one inference step",
   description:
-    "Predict, change one mechanism, and derive inference behavior from recorded experiments.",
+    "Watch the visual languages of one inference step, then enter a room to change one mechanism.",
 };
 const traces = {
   kv: assertValidTrace(kv),
@@ -37,7 +37,6 @@ export default function RootLayout({
         </a>
         <MachineProvider traces={traces}>
           <main className="page" id="machine-main">
-            <p className="eyebrow">InferTab / A machine you can reason about</p>
             {children}
             <MachineWorkspace />
           </main>

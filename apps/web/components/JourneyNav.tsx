@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMachine } from "./MachineProvider";
+import { LESSON_PATHS } from "@/lib/simulation/journey";
 import type { Lesson } from "@/lib/simulation/model";
 
 const LINKS: Array<{
@@ -10,17 +11,17 @@ const LINKS: Array<{
   href: string;
   label: string;
 }> = [
-  { id: "kv", lesson: "01", href: "/", label: "Repeating work" },
+  { id: "kv", lesson: "01", href: LESSON_PATHS["01"], label: "Repeating work" },
   {
     id: "prefill",
     lesson: "02",
-    href: "/prefill-vs-decode",
+    href: LESSON_PATHS["02"],
     label: "Read vs write",
   },
   {
     id: "arithmetic",
     lesson: "03",
-    href: "/arithmetic-vs-memory",
+    href: LESSON_PATHS["03"],
     label: "Math vs data",
   },
 ];

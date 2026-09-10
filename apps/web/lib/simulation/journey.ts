@@ -1,5 +1,19 @@
 import type { Lesson, Prediction } from "./model";
 
+export const LESSON_PATHS: Record<Lesson, string> = {
+  "01": "/repeating-work",
+  "02": "/prefill-vs-decode",
+  "03": "/arithmetic-vs-memory",
+};
+
+/** Map a deep-room pathname onto its lens; the catalog at `/` has no lesson. */
+export function lessonFromPath(pathname: string): Lesson | null {
+  const found = (Object.entries(LESSON_PATHS) as [Lesson, string][]).find(
+    ([, path]) => path === pathname,
+  );
+  return found ? found[0] : null;
+}
+
 /** Declarative lesson copy labels the same state contract across all three lenses. */
 export const JOURNEY: Record<
   Lesson,

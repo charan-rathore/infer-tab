@@ -116,6 +116,37 @@ function createSession(traces: TraceBundle): Session {
   };
 }
 
+const ignoreSend = () => {};
+const ignoreRestore = () => {};
+const ignoreReplace = () => {};
+
+/** Present a constructed observation. Catalog playback never records learner events. */
+export function MachinePresentation({
+  traces,
+  state,
+  children,
+}: {
+  traces: TraceBundle;
+  state: MachineState;
+  children: ReactNode;
+}) {
+  return (
+    <MachineContext.Provider
+      value={{
+        traces,
+        state,
+        events: [],
+        source: "Catalog presentation of recorded traces.",
+        send: ignoreSend,
+        restore: ignoreRestore,
+        replaceTrace: ignoreReplace,
+      }}
+    >
+      {children}
+    </MachineContext.Provider>
+  );
+}
+
 /** Require the shared provider so a lens cannot silently create its own simulation state. */
 export function useMachine(): MachineContextValue {
   const machine = useContext(MachineContext);

@@ -42,7 +42,7 @@ npm install
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000). The journey is 01 Repeating work, 02 Read vs write, 03 Math vs data. The routes are lenses of one persistent machine with Learn, Inspect, and Prove. Each discovery begins with a prediction, changes one mechanism, and derives the consequence from a recorded trace. Recording and replay contains custom prompts and portable replay files.
+Then open [http://localhost:3000](http://localhost:3000). The landing is a self-playing catalog of InferTab's visual languages. Deep rooms are `/repeating-work`, `/prefill-vs-decode`, and `/arithmetic-vs-memory`. Those rooms are lenses of one persistent machine with Learn, Inspect, and Prove. Each discovery begins with a prediction, changes one mechanism, and derives the consequence from a recorded trace. Recording and replay contains custom prompts and portable replay files.
 
 See [docs/inference/scaling-book.md](docs/inference/scaling-book.md) for how these map to the Scaling Book.
 

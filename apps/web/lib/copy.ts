@@ -30,7 +30,7 @@ export const LEARN_03 = {
 export const JOURNEY = [
   {
     id: "kv" as const,
-    href: "/",
+    href: "/repeating-work",
     num: "01",
     title: "Repeating work",
     problem: "Each new word looks at every word so far.",

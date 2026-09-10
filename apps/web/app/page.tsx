@@ -1,11 +1,6 @@
-/** Introduce the first lens; the persistent machine itself lives in the shared layout. */
+import { CatalogLanding } from "@/components/CatalogLanding";
+
+/** Landing is a self-playing catalog; lesson 01 lives on `/repeating-work`. */
 export default function HomePage() {
-  return (
-    <header>
-      <h1>Build. Notice. Keep.</h1>
-      <p className="lede">
-        Make the machine repeat itself. Then change one rule.
-      </p>
-    </header>
-  );
+  return <CatalogLanding />;
 }

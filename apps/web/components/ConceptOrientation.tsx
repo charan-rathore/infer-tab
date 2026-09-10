@@ -9,6 +9,7 @@ import {
 } from "@/lib/teaching/concepts";
 import { conceptLearning } from "@/lib/teaching/learner";
 import { reached, type Lesson } from "@/lib/simulation/model";
+import { LESSON_PATHS } from "@/lib/simulation/journey";
 import { useMachine } from "./MachineProvider";
 
 const LENSES: {
@@ -17,7 +18,12 @@ const LENSES: {
   label: string;
   href: string;
 }[] = [
-  { lesson: "01", concept: "kv-cache", label: "Keep the past", href: "/" },
+  {
+    lesson: "01",
+    concept: "kv-cache",
+    label: "Keep the past",
+    href: LESSON_PATHS["01"],
+  },
   {
     lesson: "02",
     concept: "causal-dependency",

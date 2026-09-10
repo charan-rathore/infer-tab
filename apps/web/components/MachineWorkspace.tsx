@@ -3,18 +3,16 @@
 import { usePathname } from "next/navigation";
 import { JourneyMachine } from "./JourneyMachine";
 import { JourneyNav } from "./JourneyNav";
+import { lessonFromPath } from "@/lib/simulation/journey";
 
-/** Change the lens of a mounted machine; the shared layout retains its DOM and provider across navigation. */
+/** Mount the gated discovery machine only on deep rooms; `/` keeps the catalog. */
 export function MachineWorkspace() {
   const pathname = usePathname();
-  const lesson =
-    pathname === "/prefill-vs-decode"
-      ? "02"
-      : pathname === "/arithmetic-vs-memory"
-        ? "03"
-        : "01";
+  const lesson = lessonFromPath(pathname);
+  if (!lesson) return null;
   return (
     <>
+      <p className="eyebrow">InferTab / A machine you can reason about</p>
       <JourneyNav
         current={
           lesson === "01" ? "kv" : lesson === "02" ? "prefill" : "arithmetic"
