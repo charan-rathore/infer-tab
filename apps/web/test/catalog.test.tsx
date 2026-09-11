@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CatalogLanding } from "@/components/CatalogLanding";
 import { MachineWorkspace } from "@/components/MachineWorkspace";
@@ -6,15 +6,17 @@ import { MachineProvider } from "@/components/MachineProvider";
 import {
   CATALOG_PLAYS,
   BEAT_MS,
+  HOLD_MS,
   catalogObservation,
 } from "@/lib/catalog/plays";
 import { LESSON_PATHS } from "@/lib/simulation/journey";
 import { traces } from "./simulation-fixture";
 
 let pathname = "/";
+const push = vi.fn();
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
   usePathname: () => pathname,
 }));
 
@@ -39,6 +41,7 @@ function viewWorkspace() {
 describe("Landing catalog", () => {
   beforeEach(() => {
     pathname = "/";
+    push.mockReset();
     vi.useFakeTimers();
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: false,
@@ -58,7 +61,10 @@ describe("Landing catalog", () => {
       "true",
     );
     expect(screen.getByRole("status")).toHaveTextContent(
-      "A step that writes the next token",
+      "A new word is being written.",
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Each step uses the words already on the bench.",
     );
     expect(screen.getByLabelText("Persistent inference machine")).toBeVisible();
   });
@@ -88,13 +94,46 @@ describe("Landing catalog", () => {
     ).toHaveAttribute("href", LESSON_PATHS["01"]);
   });
 
+  it("keeps pause, replay, and next-play on the stage", () => {
+    viewCatalog();
+    expect(screen.getByRole("button", { name: "Pause" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Replay" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Next play" })).toBeVisible();
+  });
+
   it("advances into the next recorded play on its own", async () => {
     viewCatalog();
     await act(async () => {
       await vi.advanceTimersByTimeAsync(BEAT_MS);
     });
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Finished work being built again",
+      "The finished words walk back through compute.",
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "The past is being built again.",
+    );
+  });
+
+  it("lets the visitor pause and stay on a beat", async () => {
+    viewCatalog();
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    expect(screen.getByLabelText("InferTab visual catalog")).toHaveAttribute(
+      "data-playing",
+      "false",
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BEAT_MS);
+    });
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "A new word is being written.",
+    );
+  });
+
+  it("jumps to the next play from the transport", () => {
+    viewCatalog();
+    fireEvent.click(screen.getByRole("button", { name: "Next play" }));
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "The finished words walk back through compute.",
     );
   });
 
@@ -114,7 +153,7 @@ describe("Landing catalog", () => {
       await vi.advanceTimersByTimeAsync(BEAT_MS);
     });
     expect(screen.getByRole("status")).toHaveTextContent(
-      "Finished work being built again",
+      "The finished words walk back through compute.",
     );
   });
 
@@ -147,7 +186,18 @@ describe("Landing catalog", () => {
       screen.queryByLabelText("InferTab visual catalog"),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByText("A step that writes the next token"),
+      screen.queryByText("A new word is being written."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("lets /arithmetic-vs-memory skip the catalog", () => {
+    pathname = "/arithmetic-vs-memory";
+    viewWorkspace();
+    expect(
+      screen.getByRole("button", { name: "Count this question’s math" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByLabelText("InferTab visual catalog"),
     ).not.toBeInTheDocument();
   });
 
@@ -160,5 +210,19 @@ describe("Landing catalog", () => {
     const mask = catalogObservation(traces, BEAT_MS * 3);
     expect(mask.play.id).toBe("mask");
     expect(mask.state.inspectedKey).toBeGreaterThan(mask.state.query);
+  });
+
+  it("holds an aha frame and names a specimen on every play", () => {
+    for (let index = 0; index < CATALOG_PLAYS.length; index += 1) {
+      const frame = catalogObservation(traces, BEAT_MS * index + HOLD_MS);
+      expect(frame.play.id).toBe(CATALOG_PLAYS[index].id);
+      expect(frame.phase).toBe("hold");
+      expect(frame.seeing.length).toBeGreaterThan(8);
+      expect(frame.consequence.length).toBeGreaterThan(8);
+      expect(frame.focusIds.length).toBeGreaterThan(0);
+      expect(`${frame.seeing} ${frame.consequence}`).not.toMatch(
+        /kv cache|prefill|arithmetic intensity/i,
+      );
+    }
   });
 });

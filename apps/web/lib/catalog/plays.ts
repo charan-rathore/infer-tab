@@ -1,3 +1,4 @@
+import { objectId } from "@/lib/simulation/adapters";
 import { LESSON_PATHS } from "@/lib/simulation/journey";
 import {
   initialState,
@@ -8,8 +9,10 @@ import {
 } from "@/lib/simulation/model";
 import type { ExplanationStrategyId } from "@/lib/teaching/concepts";
 
-export const BEAT_MS = 5000;
-export const STEP_MS = 1000;
+/** Long enough for a human to read the objects, then sit on the aha frame. */
+export const BEAT_MS = 10000;
+export const STEP_MS = 2000;
+export const HOLD_MS = 5000;
 export const PLAY_COUNT = 6;
 export const CYCLE_MS = BEAT_MS * PLAY_COUNT;
 
@@ -21,6 +24,7 @@ export type CatalogPlayId =
   | "mask"
   | "jobs"
   | "piles";
+export type CatalogPhase = "step" | "hold";
 
 export interface CatalogPlay {
   id: CatalogPlayId;
@@ -39,7 +43,7 @@ export interface LockedRoom {
 export const CATALOG_PLAYS: readonly CatalogPlay[] = [
   {
     id: "loop",
-    label: "A step that writes the next token",
+    label: "The loop",
     href: LESSON_PATHS["01"],
     lesson: "01",
     board: "machine",
@@ -47,7 +51,7 @@ export const CATALOG_PLAYS: readonly CatalogPlay[] = [
   },
   {
     id: "waste",
-    label: "Finished work being built again",
+    label: "Waste",
     href: LESSON_PATHS["01"],
     lesson: "01",
     board: "machine",
@@ -55,7 +59,7 @@ export const CATALOG_PLAYS: readonly CatalogPlay[] = [
   },
   {
     id: "keep",
-    label: "The same step, after we keep the past",
+    label: "Keep",
     href: LESSON_PATHS["01"],
     lesson: "01",
     board: "machine",
@@ -63,7 +67,7 @@ export const CATALOG_PLAYS: readonly CatalogPlay[] = [
   },
   {
     id: "mask",
-    label: "A token may only read its past",
+    label: "Look back",
     href: LESSON_PATHS["02"],
     lesson: "02",
     board: "attention",
@@ -71,7 +75,7 @@ export const CATALOG_PLAYS: readonly CatalogPlay[] = [
   },
   {
     id: "jobs",
-    label: "Reading the prompt vs writing one word",
+    label: "Two jobs",
     href: LESSON_PATHS["02"],
     lesson: "02",
     board: "attention",
@@ -79,7 +83,7 @@ export const CATALOG_PLAYS: readonly CatalogPlay[] = [
   },
   {
     id: "piles",
-    label: "Little new math, a lot of stored data",
+    label: "Two piles",
     href: LESSON_PATHS["03"],
     lesson: "03",
     board: "payload",
@@ -99,6 +103,10 @@ export interface CatalogObservation {
   play: CatalogPlay;
   playIndex: number;
   beatElapsed: number;
+  phase: CatalogPhase;
+  seeing: string;
+  consequence: string;
+  focusIds: readonly string[];
   state: MachineState;
 }
 
@@ -113,6 +121,23 @@ function lessons(
   };
 }
 
+/** Stable token identity from the recorded prompt, never from a guessed string. */
+function tokenFocus(traces: TraceBundle, position: number): string {
+  return objectId(traces.kv.prompt, position);
+}
+
+/** Advance one recorded play forward; wrapping starts the next cycle. */
+export function nextCatalogElapsed(elapsedMs: number): number {
+  const beat = ((elapsedMs % BEAT_MS) + BEAT_MS) % BEAT_MS;
+  return elapsedMs - beat + BEAT_MS;
+}
+
+/** Return to the first frame of the play currently on screen. */
+export function replayCatalogElapsed(elapsedMs: number): number {
+  const beat = ((elapsedMs % BEAT_MS) + BEAT_MS) % BEAT_MS;
+  return elapsedMs - beat;
+}
+
 /** Project one catalog frame from recorded traces. The clock only chooses a playhead and lens. */
 export function catalogObservation(
   traces: TraceBundle,
@@ -125,38 +150,65 @@ export function catalogObservation(
   );
   const play = CATALOG_PLAYS[playIndex];
   const beatElapsed = cycle - playIndex * BEAT_MS;
-  const tick = Math.floor(beatElapsed / STEP_MS);
+  const steppingWindow = BEAT_MS - HOLD_MS;
+  const phase: CatalogPhase = beatElapsed >= steppingWindow ? "hold" : "step";
+  const live = Math.min(beatElapsed, Math.max(0, steppingWindow - 1));
+  const tick = Math.floor(live / STEP_MS);
   const last = Math.max(0, traces.kv.modes.naive.steps.length - 1);
   const promptLength = traces.prefill.config.promptLength;
   const base = initialState(traces);
   let patch: Partial<MachineState> = {};
   let revealed: Partial<Record<Lesson, Milestone>> = {};
+  let seeing = "";
+  let consequence = "";
+  let focusIds: readonly string[] = [];
 
   switch (play.id) {
-    case "loop":
+    case "loop": {
+      const playhead = Math.min(tick, last);
+      const emitted =
+        traces.kv.modes.naive.steps[playhead]?.generatedToken.position ??
+        traces.kv.promptTokens.length;
       patch = {
-        playhead: Math.min(tick, last),
+        playhead,
         policy: "naive",
         compare: false,
       };
+      seeing = "A new word is being written.";
+      consequence = "Each step uses the words already on the bench.";
+      focusIds = [tokenFocus(traces, emitted), tokenFocus(traces, 0)];
       break;
-    case "waste":
+    }
+    case "waste": {
+      const playhead = Math.min(Math.max(1, tick + 1), last);
       patch = {
-        playhead: Math.min(Math.max(1, tick), last),
+        playhead,
         policy: "naive",
         compare: false,
       };
+      seeing = "The finished words walk back through compute.";
+      consequence = "The past is being built again.";
+      focusIds = [tokenFocus(traces, 0), tokenFocus(traces, 1)];
       break;
-    case "keep":
+    }
+    case "keep": {
+      const playhead = Math.min(Math.max(1, tick + 1), last);
+      const newest =
+        traces.kv.modes.cached.steps[playhead]?.newlyComputed[0]?.position ??
+        playhead;
       revealed = { "01": "aha" };
       patch = {
-        playhead: Math.min(Math.max(1, tick), last),
+        playhead,
         policy: "cached",
         compare: true,
       };
+      seeing = "Those same words stay on the shelf.";
+      consequence = "Only the newest word is built.";
+      focusIds = [tokenFocus(traces, 0), tokenFocus(traces, newest)];
       break;
+    }
     case "mask": {
-      const query = Math.min(tick % Math.max(1, promptLength - 1), promptLength - 2);
+      const query = Math.min(1, Math.max(0, promptLength - 2));
       revealed = { "02": "failure" };
       patch = {
         query,
@@ -164,27 +216,56 @@ export function catalogObservation(
         job: "prefill",
         representation: "connections",
       };
+      seeing = "This word may only look backward.";
+      consequence = "A later word is closed.";
+      focusIds = [`query:${query}`, `edge:${query}:${query + 1}`];
       break;
     }
-    case "jobs":
+    case "jobs": {
+      const reading = beatElapsed < BEAT_MS / 2;
       revealed = { "02": "aha" };
       patch = {
-        job: beatElapsed < BEAT_MS / 2 ? "prefill" : "decode",
+        job: reading ? "prefill" : "decode",
         representation: "connections",
         query: 0,
         inspectedKey: null,
       };
+      if (reading) {
+        seeing = "The whole prompt is one read.";
+        consequence = "Every word already on the bench asks together.";
+        focusIds = ["query:0", `query:${promptLength - 1}`];
+      } else {
+        seeing = "The next word is one row.";
+        consequence = "Only the newest question is asked.";
+        focusIds = [`query:${promptLength}`];
+      }
       break;
-    case "piles":
+    }
+    case "piles": {
+      const mathFirst = beatElapsed < BEAT_MS / 2;
       revealed = { "03": "aha" };
       patch = { job: "decode", bytes: 4 };
+      if (mathFirst) {
+        seeing = "A little new math.";
+        consequence = "The new work is a short chain.";
+        focusIds = ["pile:math"];
+      } else {
+        seeing = "A long shelf of stored data.";
+        consequence = "The next word still needs that stored shelf.";
+        focusIds = ["pile:data"];
+      }
       break;
+    }
   }
 
   return {
     play,
     playIndex,
     beatElapsed,
+    phase,
+    seeing,
+    consequence,
+    focusIds,
     state: {
       ...base,
       ...patch,

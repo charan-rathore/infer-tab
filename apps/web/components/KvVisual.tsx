@@ -161,6 +161,7 @@ export function CompareLane() {
             type="button"
             className="mirror-object"
             key={objectId(traces.kv.prompt, token.position)}
+            data-object-id={objectId(traces.kv.prompt, token.position)}
             data-concept-id={objectId(traces.kv.prompt, token.position)}
             aria-label={
               "Inspect " +

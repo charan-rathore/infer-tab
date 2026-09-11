@@ -425,6 +425,7 @@ export function AttentionBoard({
                   <path
                     key={`${i}:${j}`}
                     data-edge={`${i}:${j}`}
+                    data-object-id={`edge:${i}:${j}`}
                     data-allowed={allowed}
                     className={`dependency-edge ${allowed ? "" : "rejected"}`}
                     data-query-active={i === query}
@@ -443,6 +444,7 @@ export function AttentionBoard({
                   cx="18"
                   cy={job === "decode" ? 80 : rowY(i)}
                   r="8"
+                  data-object-id={`query:${i}`}
                   data-query-active={i === query}
                   fill="var(--ink)"
                 />
@@ -618,7 +620,7 @@ export function PayloadBoard({
           </span>
         </div>
       )}
-      <div className="symbolic-work">
+      <div className="symbolic-work" data-object-id="pile:math">
         <span className="region-label">COMPUTE</span>
         <h3>One piece of the calculation</h3>
         <div
@@ -691,7 +693,7 @@ export function PayloadBoard({
         )}
       </div>
       {showData && (
-        <div className="information-payload">
+        <div className="information-payload" data-object-id="pile:data">
           <span className="region-label">MEMORY</span>
           <div className="payload-read" aria-hidden="true">
             <span>Q</span>
